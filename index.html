@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ClockIt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="ClockIt: game-night timers. Two-player chess clock, group turn timer, quiz countdown and stopwatch.">
+  <meta name="theme-color" content="#0a0f24">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ClockIt">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Icon set (drawn inline so the app works offline with no icon files) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><circle cx="11" cy="13" r="7.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 9.5V13l2.2 1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 2.5v5M17 5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 8.8a4.5 4.5 0 0 1 0 6.4M18.2 6.2a8.2 8.2 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M10.3 2.8h3.4l.5 2.6 1.6.9 2.5-.9 1.7 2.9-2 1.8v1.8l2 1.8-1.7 2.9-2.5-.9-1.6.9-.5 2.6h-3.4l-.5-2.6-1.6-.9-2.5.9-1.7-2.9 2-1.8v-1.8l-2-1.8 1.7-2.9 2.5.9 1.6-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3.5 8l4.3 3.6L12 5l4.2 6.6L20.5 8l-1.8 10H5.3z" fill="currentColor"/><rect x="5.3" y="19" width="13.4" height="2" rx="1" fill="currentColor"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 21V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M6 4.5h11l-2.5 4 2.5 4H6z" fill="currentColor"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4v14M7 18l-3-3M7 18l3-3M17 20V6M17 6l-3 3M17 6l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill="currentColor"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M7 9.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-duel" viewBox="0 0 24 24"><rect x="3.5" y="3" width="17" height="7.5" rx="2.6" fill="currentColor"/><rect x="3.5" y="13.5" width="17" height="7.5" rx="2.6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><circle cx="12" cy="4.6" r="2.6" fill="currentColor"/><circle cx="19.2" cy="12" r="2.6" fill="currentColor" opacity=".55"/><circle cx="12" cy="19.4" r="2.6" fill="currentColor" opacity=".55"/><circle cx="4.8" cy="12" r="2.6" fill="currentColor" opacity=".55"/><path d="M14.8 6.6a7.6 7.6 0 0 1 2.6 2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-ring" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 1-8.2 5.3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="3.2 2.2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-stopwatch" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13.5l3.2-3.2M9.5 2.5h5M12 2.5v3.2M18.6 6.1l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5.8v12.4a.9.9 0 0 0 1.4.75l8.6-6.2a.9.9 0 0 0 0-1.5L6.4 5.05A.9.9 0 0 0 5 5.8z" fill="currentColor"/><rect x="16.5" y="5" width="2.8" height="14" rx="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 6L4 11l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 11h9.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15.5V5.5A2.5 2.5 0 0 1 7.5 3H15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app" data-mode="duel" data-phase="ready" data-active="0" data-theme="voltage" data-table="on">
+
+  <header class="topbar">
+    <button type="button" class="brand" id="modeBtn" aria-haspopup="dialog" aria-controls="modeSheet" aria-label="Duel mode. Change mode">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="11" rx="4" class="mark-a"/>
+        <rect x="3" y="18" width="26" height="11" rx="4" class="mark-b"/>
+        <circle cx="16" cy="16" r="2.4" class="mark-hinge"/>
+      </svg>
+      <span class="brand-text">
+        <span class="wordmark">CLOCK<span>IT</span></span>
+        <span class="mode-name"><span id="modeName">Duel</span><svg aria-hidden="true"><use href="#i-chevron"/></svg></span>
+      </span>
+    </button>
+    <div class="status" id="status" role="status" data-state="ready">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span class="status-text" id="statusText">READY</span>
+    </div>
+    <button class="icon-btn" id="settingsBtn" type="button" aria-label="Open settings" aria-controls="sheet" aria-expanded="false">
+      <svg aria-hidden="true"><use href="#i-gear"/></svg>
+    </button>
+  </header>
+
+  <main class="view arena" id="view-duel" aria-label="Duel">
+    <!-- Player 1 (top; turned to face across the table in Table mode) -->
+    <button class="panel" id="panel0" data-player="0" type="button" aria-describedby="hint">
+      <span class="panel-inner">
+        <span class="panel-head">
+          <span class="pname" id="name0">Player 1</span>
+          <span class="badge" id="badge0">MOVES FIRST</span>
+        </span>
+        <span class="digits" id="digits0" aria-hidden="true">
+          <span class="d">0</span><span class="d">5</span><span class="colon">:</span><span class="d">0</span><span class="d">0</span><span class="tenths"></span>
+        </span>
+        <span class="panel-foot">
+          <span class="moves" id="moves0">MOVE 1</span>
+          <span class="inc" id="inc0"></span>
+        </span>
+        <span class="meter" aria-hidden="true"><span class="meter-fill" id="meter0"></span></span>
+        <span class="pop" id="pop0" aria-hidden="true"></span>
+        <span class="float" id="float0" aria-hidden="true"></span>
+      </span>
+      <span class="ripples" aria-hidden="true"></span>
+    </button>
+
+    <!-- Centre rail: messages + controls -->
+    <section class="rail" aria-label="Game controls">
+      <p class="ticker" id="ticker" aria-hidden="true"><span id="tickerText">Pick a time, then start the battle</span></p>
+
+      <div class="presets" id="presets" role="group" aria-label="Time per player">
+        <button type="button" class="preset" data-min="1"><b>1</b><span>Bullet</span></button>
+        <button type="button" class="preset" data-min="3"><b>3</b><span>Blitz</span></button>
+        <button type="button" class="preset" data-min="5"><b>5</b><span>Classic</span></button>
+        <button type="button" class="preset" data-min="10"><b>10</b><span>Rapid</span></button>
+        <button type="button" class="preset" data-min="15"><b>15</b><span>Marathon</span></button>
+        <button type="button" class="preset" data-min="custom"><b>&middot;&middot;&middot;</b><span>Custom</span></button>
+      </div>
+
+      <div class="controls">
+        <button type="button" class="ctl" id="resetBtn" aria-label="Reset game">
+          <svg aria-hidden="true"><use href="#i-reset"/></svg><span class="ctl-label">Reset</span>
+        </button>
+        <button type="button" class="primary" id="primaryBtn">
+          <svg aria-hidden="true"><use href="#i-play"/></svg><span id="primaryLabel">Start Battle</span>
+        </button>
+        <button type="button" class="ctl" id="addBtn" aria-label="Add 5 seconds to the player whose turn it is">
+          <svg aria-hidden="true"><use href="#i-plus"/></svg><span class="ctl-label">+5 sec</span>
+        </button>
+        <button type="button" class="ctl" id="soundBtn" aria-pressed="true" aria-label="Sound on. Tap to mute">
+          <svg aria-hidden="true"><use href="#i-sound"/></svg><span class="ctl-label">Sound</span>
+        </button>
+      </div>
+      <p class="sr-only" id="hint">Tap your own clock to end your turn.</p>
+    </section>
+
+    <!-- Player 2 (bottom) -->
+    <button class="panel" id="panel1" data-player="1" type="button" aria-describedby="hint">
+      <span class="panel-inner">
+        <span class="panel-head">
+          <span class="pname" id="name1">Player 2</span>
+          <span class="badge" id="badge1">WAITING</span>
+        </span>
+        <span class="digits" id="digits1" aria-hidden="true">
+          <span class="d">0</span><span class="d">5</span><span class="colon">:</span><span class="d">0</span><span class="d">0</span><span class="tenths"></span>
+        </span>
+        <span class="panel-foot">
+          <span class="moves" id="moves1">MOVE 1</span>
+          <span class="inc" id="inc1"></span>
+        </span>
+        <span class="meter" aria-hidden="true"><span class="meter-fill" id="meter1"></span></span>
+        <span class="pop" id="pop1" aria-hidden="true"></span>
+        <span class="float" id="float1" aria-hidden="true"></span>
+      </span>
+      <span class="ripples" aria-hidden="true"></span>
+    </button>
+  </main>
+
+  <!-- ============ GROUP: turn timer for 2–8 players ============ -->
+  <main class="view gp" id="view-group" hidden aria-label="Group turn timer" data-state="ready">
+    <section class="gp-setup" id="gpSetup" aria-label="Game setup">
+      <div class="setup-card">
+        <div class="setup-row">
+          <span class="setup-label" id="gpCountLabel">Players</span>
+          <div class="mini-stepper" role="group" aria-labelledby="gpCountLabel">
+            <button type="button" class="step" id="gpLess" aria-label="One player fewer">&minus;</button>
+            <output id="gpCount" aria-live="polite">4</output>
+            <button type="button" class="step" id="gpMore" aria-label="One player more">+</button>
+          </div>
+        </div>
+        <ol class="gp-names" id="gpNames"></ol>
+      </div>
+      <div class="setup-card">
+        <p class="setup-label" id="gpStyleLabel">Timer style</p>
+        <div class="chips chips-2" role="radiogroup" aria-labelledby="gpStyleLabel" id="gpStyle">
+          <button type="button" role="radio" class="chip" data-style="turn">Turn limit<small>Resets every turn</small></button>
+          <button type="button" role="radio" class="chip" data-style="bank">Time bank<small>Total for the game</small></button>
+        </div>
+        <p class="setup-label" id="gpTimeLabel">Time per turn</p>
+        <div class="chips chips-4" role="radiogroup" aria-labelledby="gpTimeLabel" id="gpTimes"></div>
+        <p class="setup-note">When a clock runs out it goes into red overtime. Nobody is knocked out.</p>
+      </div>
+    </section>
+
+    <section class="gp-live" id="gpLive" hidden>
+      <button type="button" class="gp-hero" id="gpHero">
+        <span class="gp-hero-top">
+          <span class="gp-hero-name" id="gpHeroName">Player 1</span>
+          <span class="badge gp-hero-badge" id="gpHeroBadge">TURN 1</span>
+        </span>
+        <span class="gp-hero-time" id="gpHeroTime">1:00</span>
+        <span class="gp-hero-bar" aria-hidden="true"><i id="gpHeroBar"></i></span>
+        <span class="gp-hero-hint" id="gpHeroHint">Tap when your turn is done</span>
+      </button>
+      <div class="gp-tiles" id="gpTiles" role="group" aria-label="All players. Tap a player to give them the turn"></div>
+    </section>
+
+    <section class="gp-summary" id="gpSummary" hidden aria-labelledby="gpSumTitle">
+      <h2 id="gpSumTitle">Game summary</h2>
+      <p class="gp-sum-meta" id="gpSumMeta"></p>
+      <ol class="gp-sum-list" id="gpSumList"></ol>
+      <div class="gp-sum-actions">
+        <button type="button" class="primary" id="gpRematch"><svg aria-hidden="true"><use href="#i-reset"/></svg><span>Play again</span></button>
+        <button type="button" class="ghost" id="gpEdit">Change players</button>
+      </div>
+    </section>
+
+    <div class="controls c3 gp-controls">
+      <button type="button" class="ctl" id="gpUndo" aria-label="Undo last turn change"><svg aria-hidden="true"><use href="#i-undo"/></svg><span class="ctl-label">Undo</span></button>
+      <button type="button" class="primary" id="gpPrimary"><svg aria-hidden="true"><use href="#i-play"/></svg><span id="gpPrimaryLabel">Start Game</span></button>
+      <button type="button" class="ctl" id="gpFinish" aria-label="Finish game and show summary"><svg aria-hidden="true"><use href="#i-flag"/></svg><span class="ctl-label">Finish</span></button>
+    </div>
+  </main>
+
+  <!-- ============ SHOWTIME: quiz & game-show countdown ============ -->
+  <main class="view st" id="view-showtime" hidden aria-label="Showtime countdown" data-state="idle">
+    <div class="st-top">
+      <div class="st-round" role="group" aria-label="Question counter">
+        <button type="button" class="round-btn" id="stRoundDown" aria-label="Previous question">&minus;</button>
+        <span class="st-round-label"><span id="stRoundWord">QUESTION</span> <b id="stRound">1</b></span>
+        <button type="button" class="round-btn" id="stRoundUp" aria-label="Next question number">+</button>
+      </div>
+      <button type="button" class="icon-btn" id="stStageBtn" aria-label="Stage view: fill the screen with the countdown"><svg aria-hidden="true"><use href="#i-expand"/></svg></button>
+    </div>
+
+    <div class="st-stage">
+      <button type="button" class="st-ring" id="stRing" aria-label="Start countdown">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="st-halo" cx="110" cy="110" r="104"/>
+          <g id="stSegs"></g>
+          <circle class="st-inner" cx="110" cy="110" r="80"/>
+        </svg>
+        <span class="st-center">
+          <span class="st-kicker" id="stKicker">READY</span>
+          <span class="st-num" id="stNum">30</span>
+          <span class="st-unit" id="stUnit">SECONDS</span>
+        </span>
+        <span class="st-banner" id="stBanner" aria-hidden="true">TIME&rsquo;S UP!</span>
+      </button>
+    </div>
+
+    <div class="presets st-presets" id="stPresets" role="group" aria-label="Countdown length">
+      <button type="button" class="preset" data-sec="5"><b>5</b><span>sec</span></button>
+      <button type="button" class="preset" data-sec="10"><b>10</b><span>sec</span></button>
+      <button type="button" class="preset" data-sec="15"><b>15</b><span>sec</span></button>
+      <button type="button" class="preset" data-sec="20"><b>20</b><span>sec</span></button>
+      <button type="button" class="preset" data-sec="30"><b>30</b><span>sec</span></button>
+      <button type="button" class="preset" data-sec="45"><b>45</b><span>sec</span></button>
+      <button type="button" class="preset" data-sec="60"><b>1</b><span>min</span></button>
+      <button type="button" class="preset" data-sec="90"><b>1:30</b><span>min</span></button>
+      <button type="button" class="preset" data-sec="120"><b>2</b><span>min</span></button>
+      <button type="button" class="preset" data-sec="custom"><b id="stCustomB">&middot;&middot;&middot;</b><span>Custom</span></button>
+    </div>
+
+    <div class="controls st-controls">
+      <button type="button" class="ctl" id="stReset" aria-label="Reset countdown"><svg aria-hidden="true"><use href="#i-reset"/></svg><span class="ctl-label">Reset</span></button>
+      <button type="button" class="primary" id="stPrimary"><svg aria-hidden="true"><use href="#i-play"/></svg><span id="stPrimaryLabel">Start</span></button>
+      <button type="button" class="ctl" id="stAdd" aria-label="Add 10 seconds"><svg aria-hidden="true"><use href="#i-plus"/></svg><span class="ctl-label">+10 sec</span></button>
+      <button type="button" class="ctl" id="stNext" aria-label="Next question: stop and get ready for the next one"><svg aria-hidden="true"><use href="#i-next"/></svg><span class="ctl-label">Next</span></button>
+    </div>
+    <button type="button" class="stage-exit" id="stStageExit" aria-label="Leave stage view"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+  </main>
+
+  <!-- ============ STOPWATCH with laps ============ -->
+  <main class="view sw" id="view-stopwatch" hidden aria-label="Stopwatch" data-state="idle">
+    <div class="sw-stage">
+      <button type="button" class="sw-dial" id="swDial" aria-label="Start stopwatch">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <g id="swTicks"></g>
+          <circle class="sw-sweep-track" cx="100" cy="100" r="84"/>
+          <circle class="sw-sweep" id="swSweep" cx="100" cy="100" r="84" pathLength="1000" transform="rotate(-90 100 100)"/>
+          <g id="swHand"><circle class="sw-dot" cx="100" cy="16" r="4.2"/></g>
+          <circle class="sw-pace-track" cx="100" cy="100" r="70"/>
+          <circle class="sw-pace" id="swPace" cx="100" cy="100" r="70" pathLength="1000" transform="rotate(-90 100 100)"/>
+        </svg>
+        <span class="sw-readout">
+          <span class="sw-time"><span class="sw-main" id="swMain">00:00</span><span class="sw-cs" id="swCs">.00</span></span>
+          <span class="sw-sub" id="swSub">Tap to start</span>
+          <span class="sw-pace-label" id="swPaceLabel"></span>
+        </span>
+      </button>
+    </div>
+    <div class="controls c2 sw-controls">
+      <button type="button" class="ctl ctl-wide" id="swLap" aria-label="Record a lap"><svg aria-hidden="true"><use href="#i-flag"/></svg><span class="ctl-label" id="swLapLabel">Lap</span></button>
+      <button type="button" class="primary" id="swPrimary"><svg aria-hidden="true"><use href="#i-play"/></svg><span id="swPrimaryLabel">Start</span></button>
+    </div>
+    <section class="laps" aria-labelledby="lapsTitle">
+      <header class="laps-head">
+        <h2 id="lapsTitle">Laps</h2>
+        <span class="laps-meta" id="lapsMeta"></span>
+        <button type="button" class="mini-btn" id="swCopy" disabled><svg aria-hidden="true"><use href="#i-copy"/></svg>Copy</button>
+      </header>
+      <ol class="lap-list" id="lapList" aria-live="polite"></ol>
+      <p class="laps-empty" id="lapsEmpty">Tap <b>Lap</b> while it runs to record splits. The inner ring then shows this lap against your best.</p>
+    </section>
+  </main>
+
+  <div class="panic-vignette" aria-hidden="true"></div>
+
+  <!-- Victory screen: each half faces its own player -->
+  <div class="victory" id="victory" hidden role="dialog" aria-modal="true" aria-labelledby="victoryTitle">
+    <div class="v-half" id="vHalf0" data-player="0">
+      <div class="v-inner">
+        <svg class="v-icon" aria-hidden="true"><use href="#i-crown"/></svg>
+        <p class="v-kicker" id="vKicker0">VICTORY</p>
+        <p class="v-name" id="vName0">Player 1</p>
+        <p class="v-detail" id="vDetail0"></p>
+      </div>
+    </div>
+    <div class="v-center">
+      <h2 class="sr-only" id="victoryTitle">Game over</h2>
+      <p class="v-line" id="vLine"></p>
+      <div class="v-actions">
+        <button type="button" class="primary" id="rematchBtn"><svg aria-hidden="true"><use href="#i-reset"/></svg><span>Rematch</span></button>
+        <button type="button" class="ghost" id="swapRematchBtn" aria-label="Rematch with the other player moving first"><svg aria-hidden="true"><use href="#i-swap"/></svg><span>Swap first move</span></button>
+        <button type="button" class="ghost" id="victorySettingsBtn"><svg aria-hidden="true"><use href="#i-gear"/></svg><span>Settings</span></button>
+      </div>
+    </div>
+    <div class="v-half" id="vHalf1" data-player="1">
+      <div class="v-inner">
+        <svg class="v-icon" aria-hidden="true"><use href="#i-flag"/></svg>
+        <p class="v-kicker" id="vKicker1">TIME'S UP</p>
+        <p class="v-name" id="vName1">Player 2</p>
+        <p class="v-detail" id="vDetail1"></p>
+      </div>
+    </div>
+    <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+  </div>
+
+  <!-- Settings sheet -->
+  <div class="scrim" id="scrim" hidden></div>
+  <section class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <header class="sheet-head">
+      <h2 id="sheetTitle">Settings</h2>
+      <button type="button" class="icon-btn" id="sheetClose" aria-label="Close settings"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    </header>
+
+    <div class="sheet-body">
+      <section class="group only-duel" aria-labelledby="gGame">
+        <h3 id="gGame">Duel game</h3>
+        <p class="group-note">These apply when you start a new game.</p>
+
+        <p class="field-label" id="lTime">Time per player</p>
+        <div class="chips chips-6" role="radiogroup" aria-labelledby="lTime" id="timeChips">
+          <button type="button" role="radio" class="chip" data-min="1">1 min<small>Bullet</small></button>
+          <button type="button" role="radio" class="chip" data-min="3">3 min<small>Blitz</small></button>
+          <button type="button" role="radio" class="chip" data-min="5">5 min<small>Classic</small></button>
+          <button type="button" role="radio" class="chip" data-min="10">10 min<small>Rapid</small></button>
+          <button type="button" role="radio" class="chip" data-min="15">15 min<small>Marathon</small></button>
+          <button type="button" role="radio" class="chip" data-min="custom">Custom<small id="customSummary">Set below</small></button>
+        </div>
+
+        <div class="custom" id="customRow" hidden>
+          <div class="stepper">
+            <label for="customMin">Minutes</label>
+            <div class="stepper-row">
+              <button type="button" class="step" data-target="customMin" data-delta="-1" aria-label="One minute less">&minus;</button>
+              <input id="customMin" type="number" inputmode="numeric" min="0" max="99" value="7">
+              <button type="button" class="step" data-target="customMin" data-delta="1" aria-label="One minute more">+</button>
+            </div>
+          </div>
+          <div class="stepper">
+            <label for="customSec">Seconds</label>
+            <div class="stepper-row">
+              <button type="button" class="step" data-target="customSec" data-delta="-5" aria-label="Five seconds less">&minus;</button>
+              <input id="customSec" type="number" inputmode="numeric" min="0" max="59" step="5" value="30">
+              <button type="button" class="step" data-target="customSec" data-delta="5" aria-label="Five seconds more">+</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="field-label" id="lInc">Bonus per move <span class="field-hint">added to the player who just moved</span></p>
+        <div class="chips chips-5" role="radiogroup" aria-labelledby="lInc" id="incChips">
+          <button type="button" role="radio" class="chip" data-inc="0">Off</button>
+          <button type="button" role="radio" class="chip" data-inc="2">+2s</button>
+          <button type="button" role="radio" class="chip" data-inc="3">+3s</button>
+          <button type="button" role="radio" class="chip" data-inc="5">+5s</button>
+          <button type="button" role="radio" class="chip" data-inc="10">+10s</button>
+        </div>
+
+        <p class="field-label" id="lFirst">First to move</p>
+        <div class="chips chips-2" role="radiogroup" aria-labelledby="lFirst" id="firstChips">
+          <button type="button" role="radio" class="chip" data-first="0"><span class="dot dot-0" aria-hidden="true"></span><span id="firstName0">Player 1</span></button>
+          <button type="button" role="radio" class="chip" data-first="1"><span class="dot dot-1" aria-hidden="true"></span><span id="firstName1">Player 2</span></button>
+        </div>
+
+        <button type="button" class="primary wide" id="applyBtn">Apply &amp; New Game</button>
+        <p class="apply-note" id="applyNote" aria-live="polite"></p>
+      </section>
+
+      <section class="group only-duel" aria-labelledby="gPlayers">
+        <h3 id="gPlayers">Duel players</h3>
+        <div class="names">
+          <label class="name-field"><span class="dot dot-0" aria-hidden="true"></span><span class="sr-only">Player 1 name</span>
+            <input id="nameInput0" type="text" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Player 1">
+          </label>
+          <label class="name-field"><span class="dot dot-1" aria-hidden="true"></span><span class="sr-only">Player 2 name</span>
+            <input id="nameInput1" type="text" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Player 2">
+          </label>
+        </div>
+      </section>
+
+      <section class="group only-showtime" aria-labelledby="gShow" id="showSettings">
+        <h3 id="gShow">Showtime</h3>
+        <p class="field-label">Custom length</p>
+        <div class="custom">
+          <div class="stepper">
+            <label for="stMin">Minutes</label>
+            <div class="stepper-row">
+              <button type="button" class="step" data-target="stMin" data-delta="-1" aria-label="One minute less">&minus;</button>
+              <input id="stMin" type="number" inputmode="numeric" min="0" max="99" value="0">
+              <button type="button" class="step" data-target="stMin" data-delta="1" aria-label="One minute more">+</button>
+            </div>
+          </div>
+          <div class="stepper">
+            <label for="stSec">Seconds</label>
+            <div class="stepper-row">
+              <button type="button" class="step" data-target="stSec" data-delta="-5" aria-label="Five seconds less">&minus;</button>
+              <input id="stSec" type="number" inputmode="numeric" min="0" max="59" step="5" value="40" data-wrap="60">
+              <button type="button" class="step" data-target="stSec" data-delta="5" aria-label="Five seconds more">+</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="primary wide" id="stApplyCustom">Use this length</button>
+        <p class="field-label" id="lStWord">Counter name</p>
+        <div class="chips chips-3" role="radiogroup" aria-labelledby="lStWord" id="stWordChips">
+          <button type="button" role="radio" class="chip" data-word="QUESTION">Question</button>
+          <button type="button" role="radio" class="chip" data-word="ROUND">Round</button>
+          <button type="button" role="radio" class="chip" data-word="TURN">Turn</button>
+        </div>
+        <div class="toggles">
+          <label class="toggle"><span><b>Final 5-second beeps</b><small>3, 2, 1&hellip; for the last five seconds</small></span><input type="checkbox" id="stOptBeeps" switch></label>
+          <label class="toggle"><span><b>Buzzer at zero</b><small>The classic game-show buzzer</small></span><input type="checkbox" id="stOptBuzzer" switch></label>
+          <label class="toggle"><span><b>Ticking clock</b><small>A soft tick every second</small></span><input type="checkbox" id="stOptTick" switch></label>
+          <label class="toggle"><span><b>Start the next one straight away</b><small>Next starts the countdown immediately</small></span><input type="checkbox" id="stOptAuto" switch></label>
+        </div>
+      </section>
+
+      <section class="group" aria-labelledby="gLook">
+        <h3 id="gLook">Theme</h3>
+        <div class="themes" role="radiogroup" aria-labelledby="gLook" id="themeChips">
+          <button type="button" role="radio" class="theme-card" data-theme-choice="voltage">
+            <span class="swatch" aria-hidden="true"><i style="background:#c6ff3d"></i><i style="background:#ff6b5a"></i></span>Voltage
+          </button>
+          <button type="button" role="radio" class="theme-card" data-theme-choice="royal">
+            <span class="swatch" aria-hidden="true"><i style="background:#b18cff"></i><i style="background:#ffcb52"></i></span>Royal
+          </button>
+          <button type="button" role="radio" class="theme-card" data-theme-choice="forest">
+            <span class="swatch" aria-hidden="true"><i style="background:#62f2bb"></i><i style="background:#ecc998"></i></span>Forest
+          </button>
+        </div>
+      </section>
+
+      <section class="group" aria-labelledby="gFeel">
+        <h3 id="gFeel">Sound &amp; feel</h3>
+        <div class="toggles">
+          <label class="toggle"><span><b>Sound</b><small>Turn clicks and alerts</small></span><input type="checkbox" id="optSound" switch></label>
+          <label class="toggle"><span><b>Haptics</b><small>Light tap feedback, where supported</small></span><input type="checkbox" id="optHaptics" switch></label>
+          <label class="toggle only-duel"><span><b>Table mode</b><small>Flip Player 1&rsquo;s side to face across the table</small></span><input type="checkbox" id="optTable" switch></label>
+          <label class="toggle"><span><b>Pause when the app is hidden</b><small>Recommended for Duel and Group. Locking the phone or switching apps pauses the game</small></span><input type="checkbox" id="optAutoPause" switch></label>
+        </div>
+      </section>
+
+      <section class="group chaos only-duel" aria-labelledby="gChaos">
+        <h3 id="gChaos"><svg aria-hidden="true"><use href="#i-bolt"/></svg>Chaos Mode</h3>
+        <p class="group-note">Optional extras. With all of these off, Duel stays quiet and tournament-serious.</p>
+        <div class="toggles">
+          <label class="toggle"><span><b>Dramatic</b><small>Over-the-top arena announcements</small></span><input type="checkbox" id="chaosDramatic" switch></label>
+          <label class="toggle"><span><b>Roast Battle</b><small>Friendly teasing on slow moves and losses</small></span><input type="checkbox" id="chaosRoast" switch></label>
+          <label class="toggle"><span><b>Panic Mode</b><small>Heartbeat and red alert in the last 10 seconds</small></span><input type="checkbox" id="chaosPanic" switch></label>
+          <label class="toggle"><span><b>Couch Champion</b><small>Arcade handovers, combos and sparks</small></span><input type="checkbox" id="chaosCouch" switch></label>
+        </div>
+      </section>
+
+      <footer class="sheet-foot">
+        <button type="button" class="ghost" id="defaultsBtn">Restore all defaults</button>
+        <p class="about"><span id="offlineState">Checking offline support&hellip;</span><br>ClockIt v<span id="version">1.0.0</span> &middot; Space ends a turn, P pauses</p>
+      </footer>
+    </div>
+  </section>
+
+  <section class="sheet mode-sheet" id="modeSheet" hidden role="dialog" aria-modal="true" aria-labelledby="modeSheetTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <header class="sheet-head">
+      <div>
+        <h2 id="modeSheetTitle">Choose a mode</h2>
+        <p class="sheet-sub">Every way to keep time at the table</p>
+      </div>
+      <button type="button" class="icon-btn" id="modeClose" aria-label="Close"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="sheet-body">
+      <div class="mode-grid" id="modeGrid"></div>
+      <p class="mode-foot">Stopwatch and Showtime keep running while you switch modes. Duel and Group pause.</p>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <p class="sr-only" id="announcer" aria-live="assertive"></p>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/timers.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/chaos.js"></script>
+<script src="js/shell.js"></script>
+<script src="js/app.js"></script>
+<script src="js/group.js"></script>
+<script src="js/showtime.js"></script>
+<script src="js/stopwatch.js"></script>
+</body>
+</html>
