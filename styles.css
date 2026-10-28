@@ -75,6 +75,10 @@
 /* ---------- base ---------- */
 
 *, *::before, *::after { box-sizing: border-box; }
+/* No zooming anywhere (like a native app). A double tap made iOS zoom in or
+   start to, and each attempt re-measured the screen, which made the layout
+   jump. "manipulation" keeps taps instant and scrolling normal. */
+html, body, * { touch-action: manipulation; }
 
 html, body {
   height: 100%;
