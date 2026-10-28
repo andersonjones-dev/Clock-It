@@ -90,10 +90,12 @@ html, body {
 
 body { position: fixed; inset: 0; }
 /* iPhone Home Screen fix (see shell.js): when iOS reports the window a status
-   bar short, only the page BACKGROUND is stretched to the real screen. The app
-   and its controls stay inside the visible window, so nothing is pushed off the
-   bottom edge. */
-html.fit-screen { min-height: calc(100vh + var(--screen-gap, 0px)); }
+   bar short, the whole app is sized to the real screen height, so the layout is
+   identical whether or not iOS has the bug at that moment. The transform makes
+   body the frame for every fixed layer (sheets, toast, overlays), so they reach
+   the real bottom too. */
+html.fit-screen { height: var(--app-h); }
+html.fit-screen body { bottom: auto; height: var(--app-h); transform: translateZ(0); }
 
 button, input { font: inherit; color: inherit; }
 button {

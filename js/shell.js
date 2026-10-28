@@ -161,10 +161,15 @@
   /*
    * iPhone Home Screen fixes (house rules for all of Anderson's apps).
    *
-   * 1. Height gap: some iOS versions report a Home Screen app's window one
-   *    status bar shorter than the screen. We stretch only the background
-   *    to cover the gap; controls stay inside the visible window and keep
-   *    their safe-area padding, so they are never pushed off the bottom.
+   * 1. Height gap: iOS sometimes reports a Home Screen app's window one
+   *    status bar (20-60px) shorter than the real screen, even though the
+   *    page is still drawn all the way to the bottom. The app then shrinks
+   *    and its buttons float up, and it jumps back when iOS corrects itself
+   *    (for example after switching modes). So whenever the window is that
+   *    much shorter than the screen, the WHOLE app is sized to the real
+   *    screen height (--app-h). Both states give exactly the same layout,
+   *    so nothing jumps. Bottom bars keep bottom 0 + the home-indicator
+   *    inset, which iOS still reports correctly in this state.
    *
    * 2. Keyboard bug: after the keyboard closes, iOS can leave the app a
    *    status bar short. When that happens (the window is more than 4px
@@ -183,24 +188,34 @@
     return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
   }
 
-  function fitBackground() {
+  function fitScreen() {
     var root = document.documentElement;
-    var gap = 0;
+    var gap = 0, fullH = 0;
     if (isStandalone() && window.screen && !typing()) {
       var landscape = window.innerWidth > window.innerHeight;
-      var fullH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+      fullH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
       gap = fullH - window.innerHeight;
-      if (gap <= 0 || gap > 80) gap = 0;
+      // Only a status-bar-sized gap is the iOS bug. Anything else is real
+      // (the keyboard, split view), so the app keeps the window's size.
+      if (gap < 10 || gap > 80) gap = 0;
     }
+    var was = root.classList.contains('fit-screen') ? root.style.getPropertyValue('--app-h') : '';
+    var want = gap > 0 ? fullH + 'px' : '';
+    if (was === want) return;
     root.classList.toggle('fit-screen', gap > 0);
-    if (gap > 0) root.style.setProperty('--screen-gap', gap + 'px');
-    else root.style.removeProperty('--screen-gap');
+    if (gap > 0) {
+      root.style.setProperty('--app-h', want);
+      root.style.setProperty('--screen-gap', gap + 'px');
+    } else {
+      root.style.removeProperty('--app-h');
+      root.style.removeProperty('--screen-gap');
+    }
   }
 
   function remeasure() {
     var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
     var h = window.innerHeight;
-    if (h >= tallest[key]) { tallest[key] = h; fitBackground(); return; }
+    if (h >= tallest[key]) { tallest[key] = h; fitScreen(); return; }
     if (isStandalone() && !typing()) {
       var short = tallest[key] - h;
       if (short > 4 && short <= 120) {
@@ -212,7 +227,7 @@
         if (window.innerHeight > tallest[key]) tallest[key] = window.innerHeight;
       }
     }
-    fitBackground();
+    fitScreen();
   }
 
   function watchScreen() {
