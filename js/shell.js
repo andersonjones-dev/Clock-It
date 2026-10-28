@@ -178,9 +178,19 @@
    */
   var tallest = { p: 0, l: 0 };
 
-  function isStandalone() {
-    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-  }
+  /*
+   * Measured on an iPhone 12 (ClockIt 2.3.7 test buttons): running the height
+   * check while the window was ALREADY the right height made iOS shrink it a
+   * moment later. The check asked iOS "is this a Home Screen app?" (a media
+   * query) and wrote to the page root every time. So now that question is
+   * asked once at startup, and nothing is written unless something changed.
+   */
+  var STANDALONE = (function () {
+    try { return window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches); }
+    catch (e) { return false; }
+  })();
+  function isStandalone() { return STANDALONE; }
+  var appliedGap = 0;
   function typing() {
     var a = document.activeElement;
     return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
@@ -195,16 +205,26 @@
       gap = fullH - window.innerHeight;
       if (gap <= 0 || gap > 80) gap = 0;
     }
-    root.classList.toggle('fit-screen', gap > 0);
-    if (gap > 0) root.style.setProperty('--screen-gap', gap + 'px');
-    else root.style.removeProperty('--screen-gap');
+    if (gap === appliedGap) return;          // nothing changed: touch nothing
+    appliedGap = gap;
+    if (gap > 0) {
+      root.style.setProperty('--screen-gap', gap + 'px');
+      root.classList.add('fit-screen');
+    } else {
+      root.classList.remove('fit-screen');
+      root.style.removeProperty('--screen-gap');
+    }
   }
 
   function remeasure() {
     if (window.ScreenLog && ScreenLog.testing) return;   // measurement tests watch iOS untouched
     var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
     var h = window.innerHeight;
-    if (h >= tallest[key]) { tallest[key] = h; fitBackground(); return; }
+    if (h >= tallest[key]) {
+      tallest[key] = h;
+      if (appliedGap) fitBackground();       // only if the background fill is on
+      return;
+    }
     if (isStandalone() && !typing()) {
       var short = tallest[key] - h;
       if (short > 4 && short <= 120) {

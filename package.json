@@ -1,6 +1,6 @@
 {
   "name": "clockit",
-  "version": "2.3.7",
+  "version": "2.3.8",
   "private": true,
   "description": "ClockIt: game-night timers and scores PWA (Duel, Group, Showtime, Stopwatch, Tally). No build step; this file only runs the tests.",
   "scripts": {
