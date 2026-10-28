@@ -90,13 +90,10 @@ html, body {
 
 body { position: fixed; inset: 0; }
 /* iPhone Home Screen fix (see shell.js): when iOS reports the window a status
-   bar short but still starts it at the top of the screen, the whole app is sized
-   to the real screen height, so the layout is the same with or without the bug.
-   The transform makes body the frame for every fixed layer (sheets, toast,
-   overlays), so they reach the real bottom too. */
-#safeTopProbe { height: env(safe-area-inset-top, 0px); }
-html.fit-screen { height: var(--app-h); }
-html.fit-screen body { bottom: auto; height: var(--app-h); transform: translateZ(0); }
+   bar short, only the page BACKGROUND is stretched to the real screen. The app
+   and its controls stay inside the visible window, so nothing is pushed off the
+   bottom edge. */
+html.fit-screen { min-height: calc(100vh + var(--screen-gap, 0px)); }
 
 button, input { font: inherit; color: inherit; }
 button {
@@ -1697,3 +1694,4 @@ svg { display: block; }
 .tl-pad .k-save { background: var(--text); color: var(--bg); border: 0; }
 .tl-pad .k-save:active { background: var(--text); transform: scale(0.97); }
 .tl-sheet .group, .tl-sheet .names { grid-template-columns: minmax(0, 1fr); }
+#status { cursor: pointer; -webkit-tap-highlight-color: transparent; }

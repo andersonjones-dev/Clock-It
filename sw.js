@@ -5,7 +5,7 @@
  * raise VERSION below (e.g. 1.0.0 -> 1.0.1). That tells phones a
  * new version exists; the app then offers an "Update" button.
  */
-var VERSION = '2.3.2';
+var VERSION = '2.3.3';
 var CACHE = 'clockit-' + VERSION;
 
 // Everything the app needs to run with no internet connection.
@@ -17,6 +17,7 @@ var APP_FILES = [
   './js/timers.js',
   './js/sound.js',
   './js/chaos.js',
+  './js/screenlog.js',
   './js/shell.js',
   './js/app.js',
   './js/group.js',
