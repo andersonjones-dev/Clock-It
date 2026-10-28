@@ -5,7 +5,7 @@
  * raise VERSION below (e.g. 1.0.0 -> 1.0.1). That tells phones a
  * new version exists; the app then offers an "Update" button.
  */
-var VERSION = '2.1.0';
+var VERSION = '2.1.1';
 var CACHE = 'clockit-' + VERSION;
 
 // Everything the app needs to run with no internet connection.
@@ -64,7 +64,12 @@ self.addEventListener('fetch', function (event) {
   if (req.mode === 'navigate') {
     event.respondWith(
       caches.match('./index.html').then(function (cached) {
-        return cached || fetch(req);
+        if (cached) return cached;
+        // Not saved yet (or removed): fetch it and save it for next time.
+        return fetch(req).then(function (res) {
+          if (res && res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put('./index.html', copy); }); }
+          return res;
+        });
       }).catch(function () { return caches.match('./index.html'); })
     );
     return;
