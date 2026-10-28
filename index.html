@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>ClockIt</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="ClockIt: game-night timers. Two-player chess clock, group turn timer, quiz countdown and stopwatch.">
+  <meta name="description" content="ClockIt: game-night timers and scores. Two-player chess clock, group turn timer, quiz countdown, stopwatch and scorekeeper.">
   <meta name="theme-color" content="#0a0f24">
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,6 +45,9 @@
     <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-next" viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tally" viewBox="0 0 24 24"><path d="M5 5v14M9 5v14M13 5v14M17 5v14" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M3 16.5L20 7.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M9 5h10.5A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5H9l-6-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-add" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
   </defs>
 </svg>
 
@@ -287,6 +290,44 @@
     </section>
   </main>
 
+  <!-- ============ TALLY: scores for any card or board game ============ -->
+  <main class="view tl" id="view-tally" hidden aria-label="Tally scorekeeper" data-state="scoring">
+    <button type="button" class="tl-strip" id="tlGameBtn" aria-label="Game settings: game, who wins, players">
+      <span class="tl-game">
+        <span class="tl-logo" aria-hidden="true"><svg><use href="#i-tally"/></svg></span>
+        <span class="tl-game-name"><b id="tlName">Game night</b><small id="tlRule">Highest wins</small></span>
+        <span class="tl-edit"><svg aria-hidden="true"><use href="#i-gear"/></svg></span>
+      </span>
+      <span class="tl-lead" id="tlLead" aria-live="polite"></span>
+    </button>
+
+    <section class="tl-board" aria-label="Scores">
+      <div class="tl-grid" id="tlGrid"></div>
+      <p class="tl-hint">Tap a score to add any amount. Hold &minus;1 or +1 for 5.</p>
+    </section>
+
+    <section class="tl-summary" id="tlSummary" aria-labelledby="tlWinName">
+      <svg class="tl-crown" aria-hidden="true"><use href="#i-crown"/></svg>
+      <p class="tl-win-title" id="tlWinTitle">Winner</p>
+      <h2 class="tl-win-name" id="tlWinName"></h2>
+      <p class="tl-win-meta" id="tlWinMeta"></p>
+      <div class="tl-podium" id="tlPodium"></div>
+      <ol class="tl-rest" id="tlRest" hidden></ol>
+      <div class="tl-sum-actions">
+        <button type="button" class="primary" id="tlAgain"><svg aria-hidden="true"><use href="#i-reset"/></svg><span>Play again</span></button>
+        <button type="button" class="ghost" id="tlShare"><svg aria-hidden="true"><use href="#i-copy"/></svg>Copy scores</button>
+        <button type="button" class="ghost" id="tlBack">Keep playing</button>
+      </div>
+    </section>
+
+    <div class="controls tl-controls">
+      <button type="button" class="ctl" id="tlUndo" aria-label="Undo last score"><svg aria-hidden="true"><use href="#i-undo"/></svg><span class="ctl-label">Undo</span></button>
+      <button type="button" class="primary" id="tlAdd"><svg aria-hidden="true"><use href="#i-add"/></svg><span>Add round</span></button>
+      <button type="button" class="ctl" id="tlRounds" aria-label="Show all rounds"><svg aria-hidden="true"><use href="#i-tally"/></svg><span class="ctl-label">Rounds</span></button>
+      <button type="button" class="ctl" id="tlFinish" aria-label="Finish game and show the winner"><svg aria-hidden="true"><use href="#i-flag"/></svg><span class="ctl-label">Finish</span></button>
+    </div>
+  </main>
+
   <div class="panic-vignette" aria-hidden="true"></div>
 
   <!-- Victory screen: each half faces its own player -->
@@ -496,14 +537,24 @@
     <header class="sheet-head">
       <div>
         <h2 id="modeSheetTitle">Choose a mode</h2>
-        <p class="sheet-sub">Every way to keep time at the table</p>
+        <p class="sheet-sub">Every way to keep time and score at the table</p>
       </div>
       <button type="button" class="icon-btn" id="modeClose" aria-label="Close"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
     </header>
     <div class="sheet-body">
       <div class="mode-grid" id="modeGrid"></div>
-      <p class="mode-foot">Stopwatch and Showtime keep running while you switch modes. Duel and Group pause.</p>
+      <p class="mode-foot">Stopwatch and Showtime keep running while you switch modes. Duel and Group pause. Tally keeps every score.</p>
     </div>
+  </section>
+
+  <div class="scrim" id="tlScrim" hidden></div>
+  <section class="sheet tl-sheet" id="tlSheet" hidden role="dialog" aria-modal="true" aria-labelledby="tlSheetTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <header class="sheet-head">
+      <h2 id="tlSheetTitle">Game</h2>
+      <button type="button" class="icon-btn" id="tlSheetClose" aria-label="Close"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="sheet-body" id="tlSheetBody"></div>
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -519,5 +570,7 @@
 <script src="js/group.js"></script>
 <script src="js/showtime.js"></script>
 <script src="js/stopwatch.js"></script>
+<script src="js/tally-core.js"></script>
+<script src="js/tally.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "ClockIt",
   "short_name": "ClockIt",
-  "description": "Game-night timers: chess clock for two, group turn timer, quiz countdown and stopwatch.",
+  "description": "Game-night timers and scores: chess clock for two, group turn timer, quiz countdown, stopwatch and scorekeeper.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

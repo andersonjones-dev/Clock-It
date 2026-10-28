@@ -14,12 +14,13 @@
 (function () {
   'use strict';
 
-  var ORDER = ['duel', 'group', 'showtime', 'stopwatch'];
+  var ORDER = ['duel', 'group', 'showtime', 'stopwatch', 'tally'];
   var META = {
     duel:      { name: 'Duel',      icon: '#i-duel',      desc: 'Chess-style clock for two players', tone: 'duel' },
     group:     { name: 'Group',     icon: '#i-group',     desc: 'Turn timer for 2–8 players',        tone: 'group' },
     showtime:  { name: 'Showtime',  icon: '#i-ring',      desc: 'Big countdown for quizzes and game shows', tone: 'show' },
-    stopwatch: { name: 'Stopwatch', icon: '#i-stopwatch', desc: 'Laps, splits and pace',             tone: 'sw' }
+    stopwatch: { name: 'Stopwatch', icon: '#i-stopwatch', desc: 'Laps, splits and pace',             tone: 'sw' },
+    tally:     { name: 'Tally',     icon: '#i-tally',     desc: 'Scores for any card or board game', tone: 'tally' }
   };
   var STATE_TEXT = { ready: 'READY', idle: 'READY', live: 'LIVE', paused: 'PAUSED', finished: 'FINISHED' };
   var KEY_MODE = 'duelclock.mode';

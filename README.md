@@ -1,6 +1,6 @@
 # ClockIt
 
-**Every way to keep time at the table.** Four timers in one installable web app, built for game nights, quizzes and face-to-face games. Put the phone on the table and play.
+**Every way to keep time and score at the table.** Four timers and a scorekeeper in one installable web app, built for game nights, quizzes and face-to-face games. Put the phone on the table and play.
 
 | Mode | What it's for |
 |---|---|
@@ -8,6 +8,7 @@
 | **Group** | Turn timer for 2–8 players: a limit per turn, or a time bank per player. |
 | **Showtime** | Big, graphic countdown for quizzes and game shows, with buzzer and stage view. |
 | **Stopwatch** | Hundredths, laps, fastest/slowest, and a pace ring against your best lap. |
+| **Tally** | Scorekeeper for any card or board game: rounds, targets, highest or lowest wins. |
 
 Tap the logo and mode name in the top-left corner to switch modes. The first visit opens the mode picker.
 
@@ -19,7 +20,7 @@ Plain HTML, CSS and JavaScript with **no build step, no dependencies, no account
 
 ```
 clockit/
-├── index.html              All screens: header, the four modes, settings, mode picker
+├── index.html              All screens: header, the five modes, settings, mode picker
 ├── styles.css              All visuals. Themes are colour tokens at the top of the file
 ├── js/
 │   ├── engine.js           Duel timer logic (single source of truth for Duel)
@@ -29,12 +30,14 @@ clockit/
 │   ├── group.js            Group mode screen
 │   ├── showtime.js         Showtime mode screen
 │   ├── stopwatch.js        Stopwatch mode screen
+│   ├── tally.js            Tally mode screen (scores, keypad, rounds, winner)
+│   ├── tally-core.js       Tally scoring logic: totals, ranks, targets
 │   ├── sound.js            Sounds made live with Web Audio (no audio files) + haptics
 │   └── chaos.js            Duel's Chaos Mode lines. Edit freely
 ├── sw.js                   Service worker: offline caching. Bump VERSION on every release
 ├── manifest.webmanifest    Name, colours and icons for "Add to Home Screen"
 ├── icons/                  App icons
-├── tests/                  30 automated tests for all the timer logic
+├── tests/                  43 automated tests for the timer and scoring logic
 ├── package.json            Only used to run the tests (no packages to install)
 └── .nojekyll               Tells GitHub Pages to serve files exactly as they are
 ```
@@ -64,11 +67,19 @@ clockit/
 - The inner ring fills as your current lap approaches your best lap and changes colour when you go slower.
 - Copy laps as text. Reset can be undone.
 
+**Tally**
+- 1–8 players, in the same colours as Group. **Use Group players** copies Group's names in one tap.
+- Presets: Uno (to 500), Rummy (lowest wins, out at 101), Carrom (to 29), Scrabble, or your own game. Choose highest or lowest wins and a target score (or none).
+- Tap a player's score to add any amount on Tally's own keypad, so the iPhone keyboard never opens while scoring. −1 / +1 buttons for quick points; hold for −5 / +5.
+- **Add round** goes player by player through one keypad. **Rounds** shows the whole score table, can copy the scores to paste in WhatsApp, and can remove the last round.
+- Reaching the target (highest wins) shows the winner straight away. With lowest wins, players who reach the limit are marked OUT.
+- **Finish** (tap twice) shows the winner and a podium. **Undo** works on every change. Scores are saved on the phone, even if the app is closed.
+
 **Everywhere**: three themes (Voltage, Royal, Forest), sound and haptics switches, keyboard shortcuts, Reduce Motion support, and the screen stays awake while a clock runs.
 
 **Switching modes**: Stopwatch and Showtime keep running in the background (the mode picker shows their live time). Duel and Group pause, because a turn clock should never run unseen. Every mode remembers its state if the app is closed.
 
-**Keyboard** (handy on an iPad or laptop): Space is the main action in every mode; Duel P pause, W wrong/undo; Group U undo; Showtime N next, R reset, F stage view; Stopwatch L lap, R reset.
+**Keyboard** (handy on an iPad or laptop): Space is the main action in every mode; Duel P pause, W wrong/undo; Group U undo; Showtime N next, R reset, F stage view; Stopwatch L lap, R reset; Tally Space adds a round, digits type on the keypad, Enter saves, U undo.
 
 ---
 
