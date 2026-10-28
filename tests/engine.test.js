@@ -185,3 +185,53 @@ test('formatTime shows MM:SS and tenths under ten seconds', () => {
   assert.equal(formatTime(0).text, '00:00.0');
   assert.equal(formatTime(-5).text, '00:00.0');
 });
+
+/* ---------- wrong answer / take-back ---------- */
+
+test('take-back returns the turn, restores the opponent and charges the presser', () => {
+  const { e, clock } = setup({ incrementMs: 3000 });
+  assert.equal(e.canTakeBack(), false, 'nothing to take back before a switch');
+  e.start(); clock.advance(10000);
+  e.press(0);                            // P1 presses after a wrong answer (+3s bonus)
+  clock.advance(4000);                   // P2's clock ran 4 s before the referee objects
+  const r = e.takeBack();
+  assert.equal(r.result, 'taken-back');
+  assert.equal(e.active, 0);
+  assert.equal(e.remainingOf(1), 60000, 'P2 gets every second back');
+  assert.equal(e.remainingOf(0), 46000, 'P1 is charged 10 s + 4 s, bonus removed');
+  assert.equal(e.moves[0], 0);
+  clock.advance(1000);
+  assert.equal(e.remainingOf(0), 45000, 'P1 keeps running');
+  assert.equal(e.takeBack().result, 'unavailable', 'only the last switch can be taken back');
+});
+
+test('take-back works while paused and applies a penalty', () => {
+  const { e, clock } = setup();
+  e.start(); clock.advance(5000); e.press(0); clock.advance(2000);
+  e.pause(); clock.advance(30000);       // the argument while paused costs nothing
+  const r = e.takeBack(undefined, 5000);
+  assert.equal(r.penaltyMs, 5000);
+  assert.equal(e.phase, PHASE.PAUSED);
+  assert.equal(e.remainingOf(0), 60000 - 5000 - 2000 - 5000);
+  assert.equal(e.remainingOf(1), 60000);
+});
+
+test('take-back that empties the clock ends the game', () => {
+  const { e, clock } = setup({ initialMs: 10000 });
+  e.start(); clock.advance(8000); e.press(0); clock.advance(3000);
+  const r = e.takeBack();
+  assert.ok(r.timeout);
+  assert.equal(e.phase, PHASE.FINISHED);
+  assert.equal(e.winner, 1);
+  assert.equal(e.remainingOf(1), 10000);
+});
+
+test('a new switch after a take-back can be taken back again', () => {
+  const { e, clock } = setup();
+  e.start(); clock.advance(3000); e.press(0); clock.advance(1000); e.takeBack();
+  clock.advance(2000); e.press(0);
+  assert.equal(e.canTakeBack(), true);
+  clock.advance(500); e.press(1);
+  e.takeBack();
+  assert.equal(e.active, 1);
+});

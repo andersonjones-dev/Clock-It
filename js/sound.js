@@ -129,6 +129,11 @@
         tone({ freq: notes[i], dur: i === notes.length - 1 ? 0.5 : 0.13, type: 'square', vol: 0.1, at: d + times[i] });
       }
     },
+    /* Wrong answer: a short descending "bzzt". */
+    wrong: function () {
+      tone({ freq: 340, dur: 0.14, type: 'square', vol: 0.12 });
+      tone({ freq: 210, dur: 0.32, type: 'square', vol: 0.12, at: 0.15 });
+    },
     /* Soft clock tick (Showtime, once a second). */
     tick: function () {
       tone({ freq: 1900, dur: 0.022, type: 'square', vol: 0.05 });

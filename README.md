@@ -41,7 +41,7 @@ clockit/
 
 ## The modes in detail
 
-**Duel**: presets from Bullet (1 min) to Marathon (15 min) plus Custom; bonus per move; Table mode flips Player 1's side to face across the table; victory screen split for both players; optional Chaos Mode (Dramatic, Roast Battle, Panic Mode, Couch Champion).
+**Duel**: presets from Bullet (1 min) to Marathon (15 min) plus Custom; bonus per move; a **Wrong** button that sends a mistaken turn back (the other clock is restored, the player who passed is charged for all the time since, optional 5 or 10 second penalty; can be relabelled Undo for board games or turned off); Table mode flips Player 1's side to face across the table; victory screen split for both players; optional Chaos Mode (Dramatic, Roast Battle, Panic Mode, Couch Champion).
 
 **Group**
 - 2–8 named players, each with their own colour.
@@ -68,7 +68,7 @@ clockit/
 
 **Switching modes**: Stopwatch and Showtime keep running in the background (the mode picker shows their live time). Duel and Group pause, because a turn clock should never run unseen. Every mode remembers its state if the app is closed.
 
-**Keyboard** (handy on an iPad or laptop): Space is the main action in every mode; Duel P pause; Group U undo; Showtime N next, R reset, F stage view; Stopwatch L lap, R reset.
+**Keyboard** (handy on an iPad or laptop): Space is the main action in every mode; Duel P pause, W wrong/undo; Group U undo; Showtime N next, R reset, F stage view; Stopwatch L lap, R reset.
 
 ---
 
@@ -114,6 +114,8 @@ All paths in the app are relative, so it works inside the `/clockit/` sub-folder
 - Keep the phone unlocked and the app open during a game. The app asks the phone to keep the screen awake while a game is on.
 
 ## Known limitations and what needs real-device testing
+
+- **Home Screen height:** some iOS versions report a Home Screen app one status bar too short, especially after the keyboard closes. ClockIt re-measures the screen after the keyboard closes, when you return to the app, and a few times after launch, and covers any leftover gap with background colour. Controls always stay fully on screen above the home indicator. Tested by simulating an iPhone 12; confirm on your phone.
 
 - **Haptics on iPhone:** Safari has no vibration API. The app uses a known iOS 18+ technique (toggling a hidden system switch) that produces a light tap. It needs confirming on a real iPhone; on older iOS there will be no haptics. Android uses standard vibration.
 - **Sound on iPhone:** the hardware silent switch also silences web audio. Sound unlocks on the first tap, as browsers require.

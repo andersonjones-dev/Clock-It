@@ -14,6 +14,7 @@
   <meta name="format-detection" content="telephone=no">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -94,7 +95,10 @@
 
     <!-- Centre rail: messages + controls -->
     <section class="rail" aria-label="Game controls">
-      <p class="ticker" id="ticker" aria-hidden="true"><span id="tickerText">Pick a time, then start the battle</span></p>
+      <div class="rail-msg">
+        <p class="ticker" id="ticker" aria-hidden="true"><span id="tickerText">Pick a time, then start the battle</span></p>
+        <button type="button" class="takeback" id="takeBackBtn" hidden><svg aria-hidden="true"><use href="#i-undo"/></svg><span id="takeBackLabel">Wrong</span></button>
+      </div>
 
       <div class="presets" id="presets" role="group" aria-label="Time per player">
         <button type="button" class="preset" data-min="1"><b>1</b><span>Bullet</span></button>
@@ -389,6 +393,25 @@
         </div>
       </section>
 
+      <section class="group only-duel" aria-labelledby="gTake">
+        <h3 id="gTake">Wrong answers &amp; take-backs</h3>
+        <p class="group-note">After a turn passes, the other player or a referee taps the button in the middle of the screen. The turn goes back, the other clock is restored, and the player who passed is charged for all the time since.</p>
+        <p class="field-label" id="lTake">Button</p>
+        <div class="chips chips-3" role="radiogroup" aria-labelledby="lTake" id="takeChips">
+          <button type="button" role="radio" class="chip" data-take="wrong">Wrong<small>For quizzes</small></button>
+          <button type="button" role="radio" class="chip" data-take="undo">Undo<small>For games</small></button>
+          <button type="button" role="radio" class="chip" data-take="off">Off<small>Hidden</small></button>
+        </div>
+        <div id="penRow">
+          <p class="field-label" id="lPen">Penalty for a wrong answer</p>
+          <div class="chips chips-3" role="radiogroup" aria-labelledby="lPen" id="penChips">
+            <button type="button" role="radio" class="chip" data-pen="0">None</button>
+            <button type="button" role="radio" class="chip" data-pen="5">&minus;5 sec</button>
+            <button type="button" role="radio" class="chip" data-pen="10">&minus;10 sec</button>
+          </div>
+        </div>
+      </section>
+
       <section class="group only-showtime" aria-labelledby="gShow" id="showSettings">
         <h3 id="gShow">Showtime</h3>
         <p class="field-label">Custom length</p>
@@ -463,7 +486,7 @@
 
       <footer class="sheet-foot">
         <button type="button" class="ghost" id="defaultsBtn">Restore all defaults</button>
-        <p class="about"><span id="offlineState">Checking offline support&hellip;</span><br>ClockIt v<span id="version">1.0.0</span> &middot; Space ends a turn, P pauses</p>
+        <p class="about"><span id="offlineState">Checking offline support&hellip;</span><br>ClockIt v<span id="version">1.0.0</span> &middot; Space ends a turn, P pauses, W sends it back</p>
       </footer>
     </div>
   </section>

@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '2.1.1';
+  var APP_VERSION = '2.2.0';
   var E = window.DuelEngine;
   var PHASE = E.PHASE;
   var Sound = window.DuelSound;
@@ -33,7 +33,9 @@
     haptics: true,
     table: true,            // flip Player 1's side to face across the table
     autoPause: true,        // pause when the app is hidden
-    chaos: { dramatic: false, roast: false, panic: false, couch: false }
+    chaos: { dramatic: false, roast: false, panic: false, couch: false },
+    takeBack: 'wrong',      // 'wrong' | 'undo' | 'off'
+    penaltySec: 0           // taken off for a wrong answer
   };
 
   /* ---------- small helpers ---------- */
@@ -68,6 +70,8 @@
     if ([1, 3, 5, 10, 15, 'custom'].indexOf(s.timeMode) < 0) s.timeMode = 5;
     if ([0, 2, 3, 5, 10].indexOf(s.incSec) < 0) s.incSec = 0;
     s.first = s.first === 1 ? 1 : 0;
+    if (['wrong', 'undo', 'off'].indexOf(s.takeBack) < 0) s.takeBack = 'wrong';
+    if ([0, 5, 10].indexOf(s.penaltySec) < 0) s.penaltySec = 0;
     s.customMs = Math.min(E.ClockEngine.MAX_MS, Math.max(10000, Number(s.customMs) || DEFAULTS.customMs));
     return s;
   }
@@ -179,6 +183,7 @@
     primaryBtn.setAttribute('aria-label', aria);
 
     addBtn.disabled = !inPlay;
+    renderTakeBack();
     if (!resetArmed) {
       resetBtn.disabled = ph === PHASE.READY && engine.moves[0] + engine.moves[1] === 0;
     }
@@ -465,6 +470,40 @@
       streak: fastStreak
     });
     announce(nameOf(to) + '’s turn.');
+    afterAction();
+  }
+
+  /* ---------- wrong answer / take-back ---------- */
+
+  function renderTakeBack() {
+    var btn = $('takeBackBtn');
+    var show = settings.takeBack !== 'off' && engine.canTakeBack();
+    btn.hidden = !show;
+    if (!show) return;
+    var back = nameOf(engine.lastSwitch.from);
+    var wrong = settings.takeBack === 'wrong';
+    $('takeBackLabel').textContent = wrong ? 'Wrong' : 'Undo';
+    btn.setAttribute('aria-label', (wrong ? 'Wrong answer: ' : 'Undo: ') + 'give the turn back to ' + back);
+  }
+
+  function onTakeBack() {
+    Sound.unlock();
+    disarmReset();
+    var wrong = settings.takeBack === 'wrong';
+    var r = engine.takeBack(now(), wrong ? settings.penaltySec * 1000 : 0);
+    if (r.result !== 'taken-back') return;
+    fastStreak = 0;
+    var back = nameOf(r.to);
+    flash(panels[r.from], 'nudge');
+    flash(panels[r.to], 'just-activated');
+    if (wrong) Sound.wrong(); else Sound.nudge();
+    Haptics.tap(true);
+    if (r.penaltyMs) floatOn(r.to, '\u2212' + r.penaltyMs / 1000);
+    var msg = (wrong ? 'Wrong answer \u00b7 back to ' : 'Undone \u00b7 back to ') + back +
+      (r.penaltyMs ? ' \u00b7 \u2212' + r.penaltyMs / 1000 + 's penalty' : '');
+    if (!(wrong && chaosSay('wrong', { p: back }))) showMessage(msg, 'warn', 3000);
+    announce(msg + '.');
+    if (r.timeout) { onTimeout(); return; }
     afterAction();
   }
 
@@ -793,6 +832,9 @@
     $('chaosRoast').checked = settings.chaos.roast;
     $('chaosPanic').checked = settings.chaos.panic;
     $('chaosCouch').checked = settings.chaos.couch;
+    setRadio('#takeChips .chip', function (b) { return b.dataset.take === settings.takeBack; });
+    setRadio('#penChips .chip', function (b) { return Number(b.dataset.pen) === settings.penaltySec; });
+    $('penRow').hidden = settings.takeBack !== 'wrong';
   }
 
   function readCustomInputs() {
@@ -1044,6 +1086,10 @@
     toggle('chaosRoast', function (v) { settings.chaos.roast = v; });
     toggle('chaosPanic', function (v) { settings.chaos.panic = v; if (!v) setPanic(false); });
     toggle('chaosCouch', function (v) { settings.chaos.couch = v; });
+    $('takeBackBtn').addEventListener('click', onTakeBack);
+    delegate('#takeChips', '.chip', function (b) { settings.takeBack = b.dataset.take; saveSettings(); syncSheetToggles(); render(); });
+    delegate('#penChips', '.chip', function (b) { settings.penaltySec = Number(b.dataset.pen); saveSettings(); syncSheetToggles(); });
+    ['#takeChips', '#penChips'].forEach(arrowKeys);
 
     document.addEventListener('keydown', onKey);
     document.addEventListener('visibilitychange', onVisibility);
@@ -1100,6 +1146,10 @@
     if (e.key === ' ' && (engine.phase === PHASE.LIVE || e.target === document.body || e.target === app)) {
       e.preventDefault();
       if (!e.repeat && engine.phase === PHASE.LIVE) onPanel(engine.active);
+      return;
+    }
+    if ((e.key === 'w' || e.key === 'W' || e.key === 'Backspace') && !e.repeat && !e.metaKey && !e.ctrlKey) {
+      if (settings.takeBack !== 'off' && engine.canTakeBack()) { e.preventDefault(); onTakeBack(); }
       return;
     }
     if ((e.key === 'p' || e.key === 'P') && !e.repeat && !e.metaKey && !e.ctrlKey) {

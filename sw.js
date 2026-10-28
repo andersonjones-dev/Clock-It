@@ -5,7 +5,7 @@
  * raise VERSION below (e.g. 1.0.0 -> 1.0.1). That tells phones a
  * new version exists; the app then offers an "Update" button.
  */
-var VERSION = '2.1.1';
+var VERSION = '2.2.0';
 var CACHE = 'clockit-' + VERSION;
 
 // Everything the app needs to run with no internet connection.
@@ -27,7 +27,8 @@ var APP_FILES = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './icons/favicon-32.png'
 ];
 
 self.addEventListener('install', function (event) {

@@ -157,6 +157,75 @@
 
   function reducedMotion() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 
+  /*
+   * iPhone Home Screen fixes (house rules for all of Anderson's apps).
+   *
+   * 1. Height gap: some iOS versions report a Home Screen app's window one
+   *    status bar shorter than the screen. We stretch only the background
+   *    to cover the gap; controls stay inside the visible window and keep
+   *    their safe-area padding, so they are never pushed off the bottom.
+   *
+   * 2. Keyboard bug: after the keyboard closes, iOS can leave the app a
+   *    status bar short. When that happens (the window is more than 4px
+   *    shorter than the tallest height we've seen), we hide and show the
+   *    page for one frame, which makes iOS measure it again. We check after
+   *    the keyboard closes, when the app comes back, and a few times after
+   *    launch.
+   */
+  var tallest = { p: 0, l: 0 };
+
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  }
+  function typing() {
+    var a = document.activeElement;
+    return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+  }
+
+  function fitBackground() {
+    var root = document.documentElement;
+    var gap = 0;
+    if (isStandalone() && window.screen && !typing()) {
+      var landscape = window.innerWidth > window.innerHeight;
+      var fullH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+      gap = fullH - window.innerHeight;
+      if (gap <= 0 || gap > 80) gap = 0;
+    }
+    root.classList.toggle('fit-screen', gap > 0);
+    if (gap > 0) root.style.setProperty('--screen-gap', gap + 'px');
+    else root.style.removeProperty('--screen-gap');
+  }
+
+  function remeasure() {
+    var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
+    var h = window.innerHeight;
+    if (h >= tallest[key]) { tallest[key] = h; fitBackground(); return; }
+    if (isStandalone() && !typing()) {
+      var short = tallest[key] - h;
+      if (short > 4 && short <= 120) {
+        var body = document.body, y = window.scrollY;
+        body.style.display = 'none';
+        void body.offsetHeight;          // force iOS to measure the page again
+        body.style.display = '';
+        window.scrollTo(0, y);
+        if (window.innerHeight > tallest[key]) tallest[key] = window.innerHeight;
+      }
+    }
+    fitBackground();
+  }
+
+  function watchScreen() {
+    remeasure();
+    [150, 600, 1500].forEach(function (ms) { setTimeout(remeasure, ms); });
+    window.addEventListener('resize', function () { if (!typing()) remeasure(); });
+    window.addEventListener('orientationchange', function () { setTimeout(remeasure, 300); });
+    document.addEventListener('focusout', function () { setTimeout(remeasure, 160); });
+    window.addEventListener('pageshow', function () { setTimeout(remeasure, 50); });
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) { setTimeout(remeasure, 50); setTimeout(remeasure, 600); }
+    });
+  }
+
   /* ---------- public API ---------- */
 
   var Shell = window.Shell = {
@@ -214,6 +283,7 @@
   }
 
   function start() {
+    watchScreen();
     buildGrid();
     $('modeBtn').addEventListener('click', function () { if (window.DuelSound) DuelSound.unlock(); openPicker(); });
     $('modeClose').addEventListener('click', closePicker);

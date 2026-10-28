@@ -29,6 +29,7 @@
       pause: ['A dramatic intermission.', 'The arena takes a breath.'],
       resume: ['The battle resumes!', 'Back to the arena.'],
       add: ['A gift of time for {p}! The gods are generous.'],
+      wrong: ['Objection sustained! Back to {p}.', 'The referee intervenes. {p}, try again.', 'A twist! {p} must answer once more.'],
       finish: ['History is written. {w} takes the crown.', 'And there it is. {w} wins the duel.', 'The arena erupts for {w}!']
     },
     roast: {
@@ -52,6 +53,7 @@
       low30: ['{p}, the clock is getting chatty.', 'Tick tock, {p}. Friendly reminder.'],
       low10: ['{p}, now would be a great time.', 'Plot twist incoming for {p}?'],
       add: ['Extra time for {p}. Use it wisely. Or don’t.'],
+      wrong: ['Nice try, {p}. The clock saw that.', '{p}, bold answer. Wrong, but bold.', 'Back to you, {p}. Confidence is not correctness.'],
       finish: [
         '{l} ran out of time, not talent.',
         'Good fight, {l}. The clock was just faster today.',
@@ -66,6 +68,7 @@
       combo: ['COMBO ×{streak}!', '{streak} FAST MOVES IN A ROW!'],
       low10: ['DANGER ZONE!'],
       add: ['POWER-UP! +5', 'EXTRA LIFE!'],
+      wrong: ['DENIED! BACK TO {p}', 'REPLAY: {p}!'],
       finish: ['K.O.! {w} WINS!', 'FLAWLESS-ISH VICTORY!', 'NEW HIGH SCORE: {w}!']
     },
     panic: {

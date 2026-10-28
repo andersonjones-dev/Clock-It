@@ -82,6 +82,7 @@
     this.longestMs = [0, 0];
     this.winner = null;
     this.loser = null;
+    this.lastSwitch = null;  // what the last hand-over changed, so it can be taken back
     return this.snapshot();
   };
 
@@ -189,6 +190,13 @@
     this._commit(t);
     var moveMs = this.turnSpentMs;
     var inc = this.config.incrementMs;
+    this.lastSwitch = {
+      from: player, to: other(player),
+      fromBefore: this.remaining[player],          // before the increment
+      toBefore: this.remaining[other(player)],
+      moveMs: moveMs,
+      prevLongest: this.longestMs[player]
+    };
     this.remaining[player] = Math.min(MAX_MS, this.remaining[player] + inc);
     this.moves[player] += 1;
     this.longestMs[player] = Math.max(this.longestMs[player], moveMs);
@@ -198,6 +206,50 @@
     this.segmentStart = t;
     this.lastSwitchAt = t;
     return { result: 'switched', from: player, to: this.active, moveMs: moveMs, incrementMs: inc, move: this.moves[player] };
+  };
+
+  /* Can the last hand-over be sent back? (Only the most recent one.) */
+  ClockEngine.prototype.canTakeBack = function () {
+    return !!this.lastSwitch && (this.phase === PHASE.LIVE || this.phase === PHASE.PAUSED) && this.active === this.lastSwitch.to;
+  };
+
+  /*
+   * Wrong answer / take-back.
+   * The player who just pressed their clock (e.g. after a wrong answer)
+   * gets the turn back, as if they had never pressed:
+   *   - the opponent's clock is restored to what it was at the switch
+   *   - all the time since the switch is charged to the player who pressed
+   *   - the increment they received is removed, and their move uncounted
+   *   - an optional penalty is taken off them too
+   * If that empties their clock, they lose on time.
+   */
+  ClockEngine.prototype.takeBack = function (t, penaltyMs) {
+    if (t === undefined) t = this.now();
+    if (!this.canTakeBack()) return { result: 'unavailable' };
+    var ls = this.lastSwitch;
+    this._commit(t);
+    var wrongMs = this.turnSpentMs;               // time that ran on the wrong clock
+    var pen = Math.max(0, Math.round(Number(penaltyMs) || 0));
+    var left = ls.fromBefore - wrongMs - pen;
+
+    this.remaining[ls.to] = ls.toBefore;
+    this.thinkMs[ls.to] = Math.max(0, this.thinkMs[ls.to] - wrongMs);
+    this.thinkMs[ls.from] += wrongMs;
+    this.moves[ls.from] = Math.max(0, this.moves[ls.from] - 1);
+    this.longestMs[ls.from] = ls.prevLongest;
+    this.active = ls.from;
+    this.turnSpentMs = ls.moveMs + wrongMs;       // their turn simply continues
+    this.segmentStart = t;
+    this.lastSwitchAt = t;
+    this.lastSwitch = null;
+    this.remaining[ls.from] = Math.max(0, left);
+
+    var res = { result: 'taken-back', from: ls.to, to: ls.from, chargedMs: wrongMs, penaltyMs: pen };
+    if (left <= 0) {
+      this.phase = PHASE.LIVE;
+      res.timeout = this._finishByTimeout(t);
+    }
+    return res;
   };
 
   /* Give the active player extra time (the "+5s" button). */
