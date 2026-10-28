@@ -97,11 +97,6 @@ body { position: fixed; inset: 0; }
    inside .app, never position:fixed. On iPhone Home Screen apps, fixed layers
    appearing and disappearing near the top made iOS re-check the status bar
    and shrink the window by one status bar, which made the layout jump. */
-/* iPhone Home Screen fix (see shell.js): when iOS reports the window a status
-   bar short, only the page BACKGROUND is stretched to the real screen. The app
-   and its controls stay inside the visible window, so nothing is pushed off the
-   bottom edge. */
-html.fit-screen { min-height: calc(100vh + var(--screen-gap, 0px)); }
 
 button, input { font: inherit; color: inherit; }
 button {
@@ -1702,4 +1697,3 @@ svg { display: block; }
 .tl-pad .k-save { background: var(--text); color: var(--bg); border: 0; }
 .tl-pad .k-save:active { background: var(--text); transform: scale(0.97); }
 .tl-sheet .group, .tl-sheet .names { grid-template-columns: minmax(0, 1fr); }
-#status { cursor: pointer; -webkit-tap-highlight-color: transparent; }

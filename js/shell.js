@@ -82,7 +82,6 @@
 
   var gridTimer = 0;
   function openPicker() {
-    if (window.ScreenLog) ScreenLog.note('picker open');
     lastFocus = document.activeElement;
     refreshGrid();
     $('scrim').hidden = false;
@@ -95,12 +94,10 @@
   }
   function closePicker() {
     if ($('modeSheet').hidden) return;
-    if (window.ScreenLog) ScreenLog.note('picker close');
     clearInterval(gridTimer);
     $('modeSheet').hidden = true;
     if ($('sheet').hidden) $('scrim').hidden = true;
     $('modeBtn').setAttribute('aria-expanded', 'false');
-    [400, 900].forEach(function (ms) { setTimeout(remeasure, ms); });
     if (lastFocus && lastFocus.focus && document.body.contains(lastFocus) && lastFocus.offsetParent) lastFocus.focus({ preventScroll: true });
   }
 
@@ -162,112 +159,11 @@
   function reducedMotion() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 
   /*
-   * iPhone Home Screen fixes (house rules for all of Anderson's apps).
-   *
-   * 1. Height gap: some iOS versions report a Home Screen app's window one
-   *    status bar shorter than the screen. We stretch only the background
-   *    to cover the gap; controls stay inside the visible window and keep
-   *    their safe-area padding, so they are never pushed off the bottom.
-   *
-   * 2. Keyboard bug: after the keyboard closes, iOS can leave the app a
-   *    status bar short. When that happens (the window is more than 4px
-   *    shorter than the tallest height we've seen), we hide and show the
-   *    page for one frame, which makes iOS measure it again. We check after
-   *    the keyboard closes, when the app comes back, and a few times after
-   *    launch.
+   * Screen height: ClockIt does NOT correct the window height. On an iPhone 12
+   * every kind of correction (re-measuring, stretching, forcing a re-layout)
+   * made iOS shrink the window again, so the app now simply lays itself out in
+   * whatever window iOS gives it.
    */
-  var tallest = { p: 0, l: 0 };
-  var lastTrick = 0;
-
-  /*
-   * Measured on an iPhone 12 (ClockIt 2.3.7 test buttons): running the height
-   * check while the window was ALREADY the right height made iOS shrink it a
-   * moment later. The check asked iOS "is this a Home Screen app?" (a media
-   * query) and wrote to the page root every time. So now that question is
-   * asked once at startup, and nothing is written unless something changed.
-   */
-  var STANDALONE = (function () {
-    try { return window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches); }
-    catch (e) { return false; }
-  })();
-  function isStandalone() { return STANDALONE; }
-  var appliedGap = 0;
-  function typing() {
-    var a = document.activeElement;
-    return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
-  }
-
-  function fitBackground() {
-    var root = document.documentElement;
-    var gap = 0;
-    if (isStandalone() && window.screen && !typing()) {
-      var landscape = window.innerWidth > window.innerHeight;
-      var fullH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-      gap = fullH - window.innerHeight;
-      if (gap <= 0 || gap > 80) gap = 0;
-    }
-    if (gap === appliedGap) return;          // nothing changed: touch nothing
-    appliedGap = gap;
-    if (gap > 0) {
-      root.style.setProperty('--screen-gap', gap + 'px');
-      root.classList.add('fit-screen');
-    } else {
-      root.classList.remove('fit-screen');
-      root.style.removeProperty('--screen-gap');
-    }
-  }
-
-  function fullHeight() {
-    var landscape = window.innerWidth > window.innerHeight;
-    return landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-  }
-
-  /*
-   * Measured on an iPhone 12 (2.3.8): with the check no longer causing the
-   * shrink, the window stayed steady, but if the app OPENED one status bar
-   * short it stayed short, because the target was the tallest height seen so
-   * far (797). Now the target is also the real screen height when the gap is
-   * status-bar sized. The fix runs at most once every 1.5s, so it can never
-   * fight iOS in a loop, and nothing is written when the height is right.
-   */
-  function remeasure() {
-    if (window.ScreenLog && ScreenLog.testing) return;   // measurement tests watch iOS untouched
-    var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
-    var h = window.innerHeight;
-    if (h > tallest[key]) tallest[key] = h;
-    var target = tallest[key];
-    if (isStandalone() && window.screen && !typing()) {
-      var gap = fullHeight() - h;
-      if (gap >= 10 && gap <= 80) target = Math.max(target, fullHeight());
-    }
-    var short = target - h;
-    if (short > 4 && short <= 120 && isStandalone() && !typing() && Date.now() - lastTrick > 1500) {
-      lastTrick = Date.now();
-      var body = document.body, y = window.scrollY;
-      if (window.ScreenLog) ScreenLog.note('re-measure trick (short ' + short + ')');
-      body.style.display = 'none';
-      void body.offsetHeight;          // force iOS to measure the page again
-      body.style.display = '';
-      window.scrollTo(0, y);
-      if (window.innerHeight > tallest[key]) tallest[key] = window.innerHeight;
-    }
-    if (short > 0 || appliedGap) fitBackground();   // writes only if the fill changes
-  }
-
-  function watchScreen() {
-    remeasure();
-    [150, 600, 1500].forEach(function (ms) { setTimeout(remeasure, ms); });
-    window.addEventListener('resize', function () { if (!typing()) remeasure(); });
-    window.addEventListener('orientationchange', function () { setTimeout(remeasure, 300); });
-    // Measured on an iPhone 12: iOS shrinks the window ~0.1-0.2s after a sheet
-    // closes, i.e. just AFTER the 160ms check. The later checks catch it, so the
-    // app is short for a moment instead of until the next tap.
-    document.addEventListener('focusout', function () { [160, 400, 900].forEach(function (ms) { setTimeout(remeasure, ms); }); });
-    window.addEventListener('pageshow', function () { setTimeout(remeasure, 50); });
-    document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) { setTimeout(remeasure, 50); setTimeout(remeasure, 600); }
-    });
-  }
 
   /* ---------- public API ---------- */
 
@@ -304,7 +200,6 @@
     openSettings: function (focusId) { if (window.DuelClock && DuelClock.openSettings) DuelClock.openSettings(focusId); },
     prefs: function () { return window.DuelClock ? DuelClock.settings() : {}; },
     announce: announce,
-    remeasure: remeasure,
     flash: flash,
     confirmTap: confirmTap,
     reducedMotion: reducedMotion
@@ -327,7 +222,6 @@
   }
 
   function start() {
-    watchScreen();
     buildGrid();
     $('modeBtn').addEventListener('click', function () { if (window.DuelSound) DuelSound.unlock(); openPicker(); });
     $('modeClose').addEventListener('click', closePicker);

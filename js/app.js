@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  var APP_VERSION = '2.3.9';
+  var APP_VERSION = '2.4.0';
   var E = window.DuelEngine;
   var PHASE = E.PHASE;
   var Sound = window.DuelSound;
