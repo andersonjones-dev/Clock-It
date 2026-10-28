@@ -177,6 +177,7 @@
    *    launch.
    */
   var tallest = { p: 0, l: 0 };
+  var lastTrick = 0;
 
   /*
    * Measured on an iPhone 12 (ClockIt 2.3.7 test buttons): running the height
@@ -216,28 +217,41 @@
     }
   }
 
+  function fullHeight() {
+    var landscape = window.innerWidth > window.innerHeight;
+    return landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+  }
+
+  /*
+   * Measured on an iPhone 12 (2.3.8): with the check no longer causing the
+   * shrink, the window stayed steady, but if the app OPENED one status bar
+   * short it stayed short, because the target was the tallest height seen so
+   * far (797). Now the target is also the real screen height when the gap is
+   * status-bar sized. The fix runs at most once every 1.5s, so it can never
+   * fight iOS in a loop, and nothing is written when the height is right.
+   */
   function remeasure() {
     if (window.ScreenLog && ScreenLog.testing) return;   // measurement tests watch iOS untouched
     var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
     var h = window.innerHeight;
-    if (h >= tallest[key]) {
-      tallest[key] = h;
-      if (appliedGap) fitBackground();       // only if the background fill is on
-      return;
+    if (h > tallest[key]) tallest[key] = h;
+    var target = tallest[key];
+    if (isStandalone() && window.screen && !typing()) {
+      var gap = fullHeight() - h;
+      if (gap >= 10 && gap <= 80) target = Math.max(target, fullHeight());
     }
-    if (isStandalone() && !typing()) {
-      var short = tallest[key] - h;
-      if (short > 4 && short <= 120) {
-        var body = document.body, y = window.scrollY;
-        if (window.ScreenLog) ScreenLog.note('re-measure trick (short ' + short + ')');
-        body.style.display = 'none';
-        void body.offsetHeight;          // force iOS to measure the page again
-        body.style.display = '';
-        window.scrollTo(0, y);
-        if (window.innerHeight > tallest[key]) tallest[key] = window.innerHeight;
-      }
+    var short = target - h;
+    if (short > 4 && short <= 120 && isStandalone() && !typing() && Date.now() - lastTrick > 1500) {
+      lastTrick = Date.now();
+      var body = document.body, y = window.scrollY;
+      if (window.ScreenLog) ScreenLog.note('re-measure trick (short ' + short + ')');
+      body.style.display = 'none';
+      void body.offsetHeight;          // force iOS to measure the page again
+      body.style.display = '';
+      window.scrollTo(0, y);
+      if (window.innerHeight > tallest[key]) tallest[key] = window.innerHeight;
     }
-    fitBackground();
+    if (short > 0 || appliedGap) fitBackground();   // writes only if the fill changes
   }
 
   function watchScreen() {
