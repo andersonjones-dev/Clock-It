@@ -206,7 +206,7 @@
     if (switchLabel || typeof document === 'undefined') return;
     var label = document.createElement('label');
     label.setAttribute('aria-hidden', 'true');
-    label.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+    label.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
     var input = document.createElement('input');
     input.type = 'checkbox';
     input.setAttribute('switch', '');

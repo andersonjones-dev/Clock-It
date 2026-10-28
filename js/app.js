@@ -206,7 +206,9 @@
     renderTicker();
     renderClocks(now(), true);
     var themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.setAttribute('content', THEME_COLORS[settings.theme]);
+    // Only touch the status-bar colour when it really changes: every write makes
+    // iOS redo the status bar, which can shrink a Home Screen app's window.
+    if (themeMeta && themeMeta.getAttribute('content') !== THEME_COLORS[settings.theme]) themeMeta.setAttribute('content', THEME_COLORS[settings.theme]);
   }
 
   function compactTime(ms) {

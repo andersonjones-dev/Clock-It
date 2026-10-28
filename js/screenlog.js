@@ -19,7 +19,7 @@
   function probe(side) {
     var d = document.createElement('div');
     d.setAttribute('aria-hidden', 'true');
-    d.style.cssText = 'position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;height:env(safe-area-inset-' + side + ',0px)';
+    d.style.cssText = 'position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;height:env(safe-area-inset-' + side + ',0px)';
     document.body.appendChild(d);
     return d;
   }
@@ -59,7 +59,7 @@
     if (on && !panel) {
       panel = document.createElement('pre');
       panel.id = 'screenLog';
-      panel.style.cssText = 'position:fixed;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 70px);z-index:99;margin:0;padding:8px 10px;' +
+      panel.style.cssText = 'position:absolute;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 70px);z-index:99;margin:0;padding:8px 10px;' +
         'background:rgba(0,0,0,.82);color:#c6ff3d;font:11px/1.45 ui-monospace,Menlo,monospace;border-radius:10px;pointer-events:none;white-space:pre;overflow:hidden';
       document.body.appendChild(panel);
       t0 = Date.now(); lines = []; last = '';

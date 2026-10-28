@@ -93,6 +93,10 @@ html, body {
 }
 
 body { position: fixed; inset: 0; }
+/* Overlays (scrims, sheets, toast, victory, flashes) are position:absolute
+   inside .app, never position:fixed. On iPhone Home Screen apps, fixed layers
+   appearing and disappearing near the top made iOS re-check the status bar
+   and shrink the window by one status bar, which made the layout jump. */
 /* iPhone Home Screen fix (see shell.js): when iOS reports the window a status
    bar short, only the page BACKGROUND is stretched to the real screen. The app
    and its controls stay inside the visible window, so nothing is pushed off the
@@ -648,7 +652,7 @@ svg { display: block; }
 /* ---------- panic vignette (Chaos) ---------- */
 
 .panic-vignette {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
@@ -668,7 +672,7 @@ svg { display: block; }
 /* ---------- victory ---------- */
 
 .victory {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 30;
   display: grid;
@@ -753,7 +757,7 @@ svg { display: block; }
 /* ---------- settings sheet ---------- */
 
 .scrim {
-  position: fixed; inset: 0; z-index: 40;
+  position: absolute; inset: 0; z-index: 40;
   background: rgba(2, 4, 12, 0.6);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
@@ -761,7 +765,7 @@ svg { display: block; }
 }
 
 .sheet {
-  position: fixed;
+  position: absolute;
   left: 0; right: 0; bottom: 0;
   z-index: 41;
   max-height: calc(100% - max(24px, env(safe-area-inset-top, 0px)) - 12px);
@@ -942,7 +946,7 @@ svg { display: block; }
 /* ---------- toast ---------- */
 
 .toast {
-  position: fixed;
+  position: absolute;
   left: 50%;
   top: calc(max(8px, calc(env(safe-area-inset-top, 0px) + var(--status-clear))) + 52px);
   transform: translateX(-50%);
@@ -1144,7 +1148,7 @@ svg { display: block; }
 .app.stage-on .st-controls { display: none; }
 .app.stage-on .stage-exit {
   display: grid; place-items: center;
-  position: fixed;
+  position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + var(--status-clear));
   right: calc(env(safe-area-inset-right, 0px) + 12px);
   width: 44px; height: 44px;
@@ -1254,7 +1258,7 @@ svg { display: block; }
 .st[data-state="done"] .st-halo { fill: color-mix(in srgb, var(--danger) 14%, var(--surface-2)); }
 .st::before {
   content: "";
-  position: fixed; inset: 0;
+  position: absolute; inset: -100vh -100vw; /* covers the whole app; .app clips it */
   background: var(--danger);
   opacity: 0;
   pointer-events: none;
