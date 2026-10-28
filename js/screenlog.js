@@ -46,7 +46,7 @@
 
   function push(text) {
     lines.push(stamp() + '  ' + text);
-    if (lines.length > 14) lines.shift();
+    if (lines.length > 16) lines.shift();
     if (panel) panel.textContent = lines.join('\n');
   }
 
@@ -66,15 +66,76 @@
       push('panel on · ClockIt ' + (document.getElementById('version') || {}).textContent);
       check();
       timer = setInterval(check, 100);
+      makeBar();
     } else if (!on && panel) {
       clearInterval(timer);
+      if (bar) { bar.remove(); bar = null; }
       panel.remove(); panel = null;
     }
   }
 
   window.ScreenLog = {
+    testing: false,
     note: function (what) { if (panel) { check(); push('— ' + what); setTimeout(check, 50); } }
   };
+
+  /*
+   * Test buttons: each repeats ONE thing that closing the mode picker does,
+   * with the automatic fix paused for 1.5s, so the log shows which one makes
+   * iOS shrink the window. Afterwards the fix runs once to reset.
+   */
+  var bar = null;
+  function overlay(blur) {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:absolute;inset:0;z-index:60;pointer-events:none;background:rgba(2,4,12,.6);' + (blur ? '-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);' : '');
+    document.getElementById('app').appendChild(d);
+    return d;
+  }
+  var TESTS = {
+    sheet: { label: 'Sheet', run: function () {
+      var s = document.getElementById('modeSheet'), c = document.getElementById('scrim');
+      s.hidden = false; c.hidden = false;
+      setTimeout(function () { s.hidden = true; c.hidden = true; window.ScreenLog.note('sheet hidden'); }, 700);
+    } },
+    focus: { label: 'Focus', run: function () {
+      var a = document.getElementById('settingsBtn'), b = document.getElementById('modeBtn');
+      a.focus({ preventScroll: true });
+      setTimeout(function () { b.focus({ preventScroll: true }); window.ScreenLog.note('focus moved'); }, 700);
+    } },
+    blur: { label: 'Blur bg', run: function () {
+      var d = overlay(true);
+      setTimeout(function () { d.remove(); window.ScreenLog.note('blur layer removed'); }, 700);
+    } },
+    plain: { label: 'Plain bg', run: function () {
+      var d = overlay(false);
+      setTimeout(function () { d.remove(); window.ScreenLog.note('plain layer removed'); }, 700);
+    } }
+  };
+  function runTest(key) {
+    if (window.ScreenLog.testing) return;
+    window.ScreenLog.testing = true;
+    window.ScreenLog.note('TEST ' + TESTS[key].label);
+    TESTS[key].run();
+    setTimeout(function () {
+      window.ScreenLog.testing = false;
+      window.ScreenLog.note('test done');
+      if (window.Shell && Shell.remeasure) Shell.remeasure();
+    }, 2200);
+  }
+  function makeBar() {
+    bar = document.createElement('div');
+    bar.id = 'screenTests';
+    bar.style.cssText = 'position:absolute;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);z-index:99;display:flex;gap:6px;';
+    Object.keys(TESTS).forEach(function (k) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = TESTS[k].label;
+      b.style.cssText = 'flex:1;height:44px;border-radius:10px;border:1px solid #c6ff3d;background:rgba(0,0,0,.85);color:#c6ff3d;font:700 13px -apple-system,system-ui,sans-serif;';
+      b.addEventListener('click', function (e) { e.stopPropagation(); runTest(k); });
+      bar.appendChild(b);
+    });
+    document.body.appendChild(bar);
+  }
 
   ['focusout', 'visibilitychange'].forEach(function (ev) {
     document.addEventListener(ev, function () { window.ScreenLog.note(ev); });

@@ -100,6 +100,7 @@
     $('modeSheet').hidden = true;
     if ($('sheet').hidden) $('scrim').hidden = true;
     $('modeBtn').setAttribute('aria-expanded', 'false');
+    [400, 900].forEach(function (ms) { setTimeout(remeasure, ms); });
     if (lastFocus && lastFocus.focus && document.body.contains(lastFocus) && lastFocus.offsetParent) lastFocus.focus({ preventScroll: true });
   }
 
@@ -200,6 +201,7 @@
   }
 
   function remeasure() {
+    if (window.ScreenLog && ScreenLog.testing) return;   // measurement tests watch iOS untouched
     var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
     var h = window.innerHeight;
     if (h >= tallest[key]) { tallest[key] = h; fitBackground(); return; }
@@ -223,7 +225,10 @@
     [150, 600, 1500].forEach(function (ms) { setTimeout(remeasure, ms); });
     window.addEventListener('resize', function () { if (!typing()) remeasure(); });
     window.addEventListener('orientationchange', function () { setTimeout(remeasure, 300); });
-    document.addEventListener('focusout', function () { setTimeout(remeasure, 160); });
+    // Measured on an iPhone 12: iOS shrinks the window ~0.1-0.2s after a sheet
+    // closes, i.e. just AFTER the 160ms check. The later checks catch it, so the
+    // app is short for a moment instead of until the next tap.
+    document.addEventListener('focusout', function () { [160, 400, 900].forEach(function (ms) { setTimeout(remeasure, ms); }); });
     window.addEventListener('pageshow', function () { setTimeout(remeasure, 50); });
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden) { setTimeout(remeasure, 50); setTimeout(remeasure, 600); }
@@ -265,6 +270,7 @@
     openSettings: function (focusId) { if (window.DuelClock && DuelClock.openSettings) DuelClock.openSettings(focusId); },
     prefs: function () { return window.DuelClock ? DuelClock.settings() : {}; },
     announce: announce,
+    remeasure: remeasure,
     flash: flash,
     confirmTap: confirmTap,
     reducedMotion: reducedMotion

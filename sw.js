@@ -5,7 +5,7 @@
  * raise VERSION below (e.g. 1.0.0 -> 1.0.1). That tells phones a
  * new version exists; the app then offers an "Update" button.
  */
-var VERSION = '2.3.6';
+var VERSION = '2.3.7';
 var CACHE = 'clockit-' + VERSION;
 
 // Everything the app needs to run with no internet connection.
