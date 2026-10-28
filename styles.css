@@ -143,6 +143,18 @@ svg { display: block; }
   overflow: hidden;
 }
 
+/* Even spacing top and bottom, with no measuring code. When iOS gives a Home
+   Screen app a window one status bar short, the window already ends above the
+   home indicator, so the home-indicator gap is reduced by however much the
+   window is short (large viewport minus current viewport). In a normal window
+   the two are equal and nothing changes; the bar is never pushed lower than
+   in a full-height window. */
+@supports (height: 100lvh) {
+  .app {
+    padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) - clamp(0px, 100lvh - 100dvh, 60px)));
+  }
+}
+
 /* ---------- header ---------- */
 
 .topbar {
