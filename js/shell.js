@@ -176,6 +176,7 @@
    *    launch.
    */
   var tallest = { p: 0, l: 0 };
+  var lastTrick = 0;   // the trick runs at most four times a second
 
   function isStandalone() {
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
@@ -205,7 +206,8 @@
     if (h >= tallest[key]) { tallest[key] = h; fitBackground(); return; }
     if (isStandalone() && !typing()) {
       var short = tallest[key] - h;
-      if (short > 4 && short <= 120) {
+      if (short > 4 && short <= 120 && Date.now() - lastTrick > 250) {
+        lastTrick = Date.now();
         var body = document.body, y = window.scrollY;
         if (window.ScreenLog) ScreenLog.note('re-measure trick (short ' + short + ')');
         body.style.display = 'none';
@@ -218,16 +220,44 @@
     fitBackground();
   }
 
+  /*
+   * 3. Catch the shrink the moment it happens. Measured on an iPhone 12
+   *    (ClockIt 2.3.4 panel): ~0.2s after a sheet closes, or when you come
+   *    back to the app, iOS shrinks the window by one status bar (844 -> 797)
+   *    WITHOUT sending a resize event. Waiting for the next timer left the
+   *    app short for up to half a second, which looked like a jump. So for
+   *    1.5s after every tap and every return to the app we check the height
+   *    on every frame and fix it in the same frame, before it is drawn.
+   *    The rest of the time a cheap check runs twice a second.
+   */
+  var burstUntil = 0, burstRaf = 0;
+  function frameCheck() {
+    burstRaf = 0;
+    var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
+    if (!typing() && window.innerHeight < tallest[key] - 4) remeasure();
+    if (Date.now() < burstUntil && !document.hidden) burstRaf = requestAnimationFrame(frameCheck);
+  }
+  function burst(ms) {
+    burstUntil = Math.max(burstUntil, Date.now() + (ms || 1500));
+    if (!burstRaf) burstRaf = requestAnimationFrame(frameCheck);
+  }
+
   function watchScreen() {
     remeasure();
     [150, 600, 1500].forEach(function (ms) { setTimeout(remeasure, ms); });
     window.addEventListener('resize', function () { if (!typing()) remeasure(); });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { if (!typing()) remeasure(); });
     window.addEventListener('orientationchange', function () { setTimeout(remeasure, 300); });
-    document.addEventListener('focusout', function () { setTimeout(remeasure, 160); });
-    window.addEventListener('pageshow', function () { setTimeout(remeasure, 50); });
+    document.addEventListener('focusout', function () { setTimeout(remeasure, 160); burst(); });
+    window.addEventListener('pageshow', function () { setTimeout(remeasure, 50); burst(2500); });
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) { setTimeout(remeasure, 50); setTimeout(remeasure, 600); }
+      if (!document.hidden) { setTimeout(remeasure, 50); setTimeout(remeasure, 600); burst(2500); }
     });
+    ['pointerup', 'touchend', 'click'].forEach(function (ev) {
+      document.addEventListener(ev, function () { burst(); }, { capture: true, passive: true });
+    });
+    setInterval(function () { if (!document.hidden && !typing()) frameCheck(); }, 500);
+    burst(2500);
   }
 
   /* ---------- public API ---------- */
