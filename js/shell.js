@@ -161,24 +161,27 @@
   /*
    * iPhone Home Screen fixes (house rules for all of Anderson's apps).
    *
-   * 1. Height gap: iOS sometimes reports a Home Screen app's window one
-   *    status bar (20-60px) shorter than the real screen, even though the
-   *    page is still drawn all the way to the bottom. The app then shrinks
-   *    and its buttons float up, and it jumps back when iOS corrects itself
-   *    (for example after switching modes). So whenever the window is that
-   *    much shorter than the screen, the WHOLE app is sized to the real
-   *    screen height (--app-h). Both states give exactly the same layout,
-   *    so nothing jumps. Bottom bars keep bottom 0 + the home-indicator
-   *    inset, which iOS still reports correctly in this state.
+   * iOS sometimes reports a Home Screen app's window one status bar
+   * (20-60px) shorter than the screen. It comes in two flavours, and iOS can
+   * flip between them (for example when a sheet closes):
    *
-   * 2. Keyboard bug: after the keyboard closes, iOS can leave the app a
-   *    status bar short. When that happens (the window is more than 4px
-   *    shorter than the tallest height we've seen), we hide and show the
-   *    page for one frame, which makes iOS measure it again. We check after
-   *    the keyboard closes, when the app comes back, and a few times after
-   *    launch.
+   *   A. The window starts at the top of the screen but stops a status bar
+   *      short of the bottom. The status-bar inset (env(safe-area-inset-top))
+   *      is still reported. The page is drawn to the real bottom, so we size
+   *      the WHOLE app to the real screen height (--app-h).
+   *   B. The window is moved down below the status bar. The status-bar inset
+   *      is reported as 0 and the window already reaches the real bottom, so
+   *      the app must NOT be stretched (that pushed the bottom bar under the
+   *      home indicator).
+   *
+   * We tell them apart with the status-bar inset, and re-check after the
+   * keyboard closes, on return to the app, after launch, and twice a second
+   * while the app is open (iOS doesn't always send a resize event when it
+   * flips). Nothing is written to the page unless the answer changes.
+   * The old trick of hiding and re-showing the page is gone: it was what
+   * kicked iOS into flavour B.
    */
-  var tallest = { p: 0, l: 0 };
+  var probe = null;
 
   function isStandalone() {
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
@@ -187,59 +190,48 @@
     var a = document.activeElement;
     return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
   }
+  function insetTop() {
+    if (!probe) {
+      probe = document.createElement('div');
+      probe.id = 'safeTopProbe';
+      probe.setAttribute('aria-hidden', 'true');
+      probe.style.cssText = 'position:absolute;left:0;top:0;width:0;visibility:hidden;pointer-events:none;';
+      document.body.appendChild(probe);
+    }
+    return probe.offsetHeight;
+  }
 
   function fitScreen() {
     var root = document.documentElement;
-    var gap = 0, fullH = 0;
+    var want = '';
     if (isStandalone() && window.screen && !typing()) {
       var landscape = window.innerWidth > window.innerHeight;
-      fullH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-      gap = fullH - window.innerHeight;
-      // Only a status-bar-sized gap is the iOS bug. Anything else is real
-      // (the keyboard, split view), so the app keeps the window's size.
-      if (gap < 10 || gap > 80) gap = 0;
+      var fullH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+      var gap = fullH - window.innerHeight;
+      // Flavour A only: a status-bar-sized gap AND the window still starts at
+      // the top of the screen (status-bar inset reported). Bigger gaps are
+      // real (keyboard, split view) and are left alone.
+      if (gap >= 10 && gap <= 80 && insetTop() >= gap - 6) want = fullH + 'px';
     }
     var was = root.classList.contains('fit-screen') ? root.style.getPropertyValue('--app-h') : '';
-    var want = gap > 0 ? fullH + 'px' : '';
     if (was === want) return;
-    root.classList.toggle('fit-screen', gap > 0);
-    if (gap > 0) {
-      root.style.setProperty('--app-h', want);
-      root.style.setProperty('--screen-gap', gap + 'px');
-    } else {
-      root.style.removeProperty('--app-h');
-      root.style.removeProperty('--screen-gap');
-    }
-  }
-
-  function remeasure() {
-    var key = window.innerWidth > window.innerHeight ? 'l' : 'p';
-    var h = window.innerHeight;
-    if (h >= tallest[key]) { tallest[key] = h; fitScreen(); return; }
-    if (isStandalone() && !typing()) {
-      var short = tallest[key] - h;
-      if (short > 4 && short <= 120) {
-        var body = document.body, y = window.scrollY;
-        body.style.display = 'none';
-        void body.offsetHeight;          // force iOS to measure the page again
-        body.style.display = '';
-        window.scrollTo(0, y);
-        if (window.innerHeight > tallest[key]) tallest[key] = window.innerHeight;
-      }
-    }
-    fitScreen();
+    root.classList.toggle('fit-screen', !!want);
+    if (want) root.style.setProperty('--app-h', want);
+    else root.style.removeProperty('--app-h');
   }
 
   function watchScreen() {
-    remeasure();
-    [150, 600, 1500].forEach(function (ms) { setTimeout(remeasure, ms); });
-    window.addEventListener('resize', function () { if (!typing()) remeasure(); });
-    window.addEventListener('orientationchange', function () { setTimeout(remeasure, 300); });
-    document.addEventListener('focusout', function () { setTimeout(remeasure, 160); });
-    window.addEventListener('pageshow', function () { setTimeout(remeasure, 50); });
+    fitScreen();
+    [150, 600, 1500].forEach(function (ms) { setTimeout(fitScreen, ms); });
+    window.addEventListener('resize', fitScreen);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', fitScreen);
+    window.addEventListener('orientationchange', function () { setTimeout(fitScreen, 300); });
+    document.addEventListener('focusout', function () { setTimeout(fitScreen, 160); setTimeout(fitScreen, 600); });
+    window.addEventListener('pageshow', function () { setTimeout(fitScreen, 50); });
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) { setTimeout(remeasure, 50); setTimeout(remeasure, 600); }
+      if (!document.hidden) { setTimeout(fitScreen, 50); setTimeout(fitScreen, 600); }
     });
+    setInterval(function () { if (!document.hidden) fitScreen(); }, 500);
   }
 
   /* ---------- public API ---------- */

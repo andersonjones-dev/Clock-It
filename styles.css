@@ -90,10 +90,11 @@ html, body {
 
 body { position: fixed; inset: 0; }
 /* iPhone Home Screen fix (see shell.js): when iOS reports the window a status
-   bar short, the whole app is sized to the real screen height, so the layout is
-   identical whether or not iOS has the bug at that moment. The transform makes
-   body the frame for every fixed layer (sheets, toast, overlays), so they reach
-   the real bottom too. */
+   bar short but still starts it at the top of the screen, the whole app is sized
+   to the real screen height, so the layout is the same with or without the bug.
+   The transform makes body the frame for every fixed layer (sheets, toast,
+   overlays), so they reach the real bottom too. */
+#safeTopProbe { height: env(safe-area-inset-top, 0px); }
 html.fit-screen { height: var(--app-h); }
 html.fit-screen body { bottom: auto; height: var(--app-h); transform: translateZ(0); }
 
