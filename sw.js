@@ -5,13 +5,14 @@
  * raise VERSION below (e.g. 1.0.0 -> 1.0.1). That tells phones a
  * new version exists; the app then offers an "Update" button.
  */
-var VERSION = '2.4.2';
+var VERSION = '2.4.3';
 var CACHE = 'clockit-' + VERSION;
 
 // Everything the app needs to run with no internet connection.
 var APP_FILES = [
   './',
   './index.html',
+  './about.js',
   './styles.css',
   './js/engine.js',
   './js/timers.js',
