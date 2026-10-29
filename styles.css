@@ -994,11 +994,25 @@ svg { display: block; }
   .panel-foot { font-size: 10px; }
 }
 
+/* Narrow phones (most Android phones are 360px wide, iPhone SE/mini 375px).
+   Measured: "Start battle" and "Marathon" were wider than their buttons. */
+@media (max-width: 420px) {
+  .primary { padding: 0 10px; }
+}
+@media (max-width: 400px) {
+  .controls { grid-template-columns: 54px minmax(0, 1fr) 54px 54px; gap: 6px; }
+  .controls.c3 { grid-template-columns: 54px minmax(0, 1fr) 54px; }
+  .primary { font-size: 14px; letter-spacing: 0.05em; gap: 7px; padding: 0 10px; }
+  .preset span { font-size: 7.5px; letter-spacing: 0.03em; }
+}
 @media (max-width: 350px) {
   .tagline { letter-spacing: 0.14em; }
   .wordmark { letter-spacing: 0.08em; }
-  .primary { font-size: 13px; letter-spacing: 0.06em; gap: 6px; padding: 0 10px; }
-  .preset span { font-size: 7.5px; letter-spacing: 0.04em; }
+  .primary { font-size: 13px; letter-spacing: 0.03em; gap: 5px; padding: 0 8px; }
+  .controls { grid-template-columns: 48px minmax(0, 1fr) 48px 48px; gap: 5px; }
+  .controls.c3 { grid-template-columns: 48px minmax(0, 1fr) 48px; }
+  .primary svg { width: 16px; height: 16px; }
+  .preset span { font-size: 7px; letter-spacing: 0; }
 }
 
 /* ---------- landscape phones ---------- */
@@ -1593,7 +1607,6 @@ svg { display: block; }
 }
 .tl-steps button:active { background: color-mix(in srgb, var(--gc) 26%, var(--surface)); border-color: var(--gc); }
 
-.tl-controls { grid-template-columns: 60px minmax(0, 1fr) 60px 60px; }
 .tl[data-state="summary"] .tl-controls,
 .tl[data-state="summary"] .tl-board,
 .tl[data-state="summary"] .tl-strip { display: none; }
