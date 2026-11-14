@@ -5,15 +5,14 @@
  * raise VERSION below (e.g. 1.0.0 -> 1.0.1). That tells phones a
  * new version exists; the app then offers an "Update" button.
  */
-var VERSION = '2.4.4';
+var VERSION = '2.4.5';
 var CACHE = 'clockit-' + VERSION;
 
 // Everything the app needs to run with no internet connection.
 var APP_FILES = [
   './',
   './index.html',
-  './about.js',
-  './install.js',
+  '/App-Kit/v1/kit.js',
   './styles.css',
   './js/engine.js',
   './js/timers.js',
@@ -63,6 +62,22 @@ self.addEventListener('fetch', function (event) {
   var req = event.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
+
+  // Shared App-Kit (install strip, About, update bar) from andersonjones-dev.github.io/App-Kit:
+  // open the saved copy straight away and save the newest copy in the background for next time.
+  if (url.pathname.indexOf('/App-Kit/') === 0 && (url.origin === self.location.origin || url.hostname === 'andersonjones-dev.github.io')) {
+    event.respondWith(caches.open(CACHE).then(function (c) {
+      return c.match(req, { ignoreSearch: true }).then(function (hit) {
+        var net = fetch(req, { cache: 'no-cache' }).then(function (r) {
+          if (r && (r.ok || r.type === 'opaque')) c.put(req, r.clone());
+          return r;
+        });
+        if (hit) { event.waitUntil(net.catch(function () {})); return hit; }
+        return net;
+      });
+    }));
+    return;
+  }
   if (url.origin !== self.location.origin) return;
 
   // Page loads: serve the cached app shell so it opens instantly and offline.
